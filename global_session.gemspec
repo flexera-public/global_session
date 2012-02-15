@@ -17,7 +17,7 @@ spec = Gem::Specification.new do |s|
   s.summary = %q{Secure single-domain session sharing plugin for Rails.}
   s.description = %q{This plugin for Rails allows several web apps in an authentication domain to share session state, facilitating single sign-on in a distributed web app. It only provides session sharing and does not concern itself with authentication or replication of the user database.}
 
-  s.add_runtime_dependency('uuidtools', ["~> 1.0"])
+  s.add_runtime_dependency('uuidtools', ["~> 2.1"])
   s.add_runtime_dependency('json', ["~> 1.4"])
   s.add_runtime_dependency('rack-contrib', ["~> 1.0"])
 

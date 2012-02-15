@@ -13,7 +13,7 @@ PATH
     global_session (1.0.7)
       json (~> 1.4)
       rack-contrib (~> 1.0)
-      uuidtools (~> 1.0)
+      uuidtools (~> 2.1)
 
 GEM
   remote: http://rubygems.org/
@@ -21,7 +21,7 @@ GEM
     activesupport (2.3.5)
     columnize (0.3.2)
     flexmock (0.8.11)
-    json (1.6.1)
+    json (1.6.5)
     linecache (0.43)
     rack (1.3.0)
     rack-contrib (1.1.0)
@@ -33,7 +33,7 @@ GEM
       ruby-debug-base (~> 0.10.4.0)
     ruby-debug-base (0.10.4)
       linecache (>= 0.3)
-    uuidtools (1.0.7)
+    uuidtools (2.1.2)
 
 PLATFORMS
   ruby
