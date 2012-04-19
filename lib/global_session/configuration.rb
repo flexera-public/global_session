@@ -33,6 +33,7 @@ module GlobalSession
   #    * signed
   #    * insecure
   # * ephemeral
+  # * local_session_integration
   # * timeout
   # * renew
   # * authority

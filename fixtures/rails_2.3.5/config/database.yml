@@ -1,0 +1,6 @@
+development:
+  adapter: mysql
+  host: localhost
+  database: temp_global_session_1334164829
+  username: root
+  password:

@@ -5,6 +5,7 @@ require 'spec/rake/spectask'
 require 'rake/rdoctask'
 require 'rake/gempackagetask'
 require 'rake/clean'
+require 'cucumber/rake/task'
 
 desc "Run unit tests"
 task :default => :spec
@@ -30,6 +31,11 @@ desc "Build global_session gem"
 Rake::GemPackageTask.new(Gem::Specification.load("global_session.gemspec")) do |package|
   package.need_zip = true
   package.need_tar = true
+end
+
+desc "run functional tests"
+Cucumber::Rake::Task.new do |t|
+  t.cucumber_opts = %w{--tags ~@slow --color --format pretty}
 end
 
 CLEAN.include('pkg')

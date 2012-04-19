@@ -66,6 +66,11 @@ module GlobalSession
               "Specified directory class '#{dir_name}' does not inherit from GlobalSession::Directory"
       end
 
+      # Override Rails ActionPack middleware to store rails session inside GlobalSession
+      if self.configuration['local_session_integration']
+        require 'global_session/rails/abstract_store_extension'
+      end
+
       authorities_dir = File.join(::Rails.root, 'config', 'authorities')
       self.directory = dir_klass.new(self.configuration, authorities_dir)
 
