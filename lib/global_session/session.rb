@@ -361,10 +361,8 @@ module GlobalSession
       @authority       = @directory.local_authority_name
 
       if defined?(::UUIDTools) # UUIDTools v2
-        ::UUIDTools::UUID.mac_address = nil # don't use current MAC address
         @id = ::UUIDTools::UUID.timestamp_create.to_s
       elsif defined?(::UUID)   # UUIDTools v1
-        ::UUID.mac_address = nil # don't use current MAC address
         @id = ::UUID.timestamp_create.to_s
       else
         raise TypeError, "Neither UUIDTools nor UUID defined; unsupported UUIDTools version?"
