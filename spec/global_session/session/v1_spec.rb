@@ -14,7 +14,7 @@ describe GlobalSession::Session::V1 do
     end
 
     context 'when a trusted signature is passed in' do
-      it 'should not recompute the signature' do
+      it 'does not recompute the signature' do
         flexmock(@directory.authorities['authority1']).should_receive(:public_decrypt).never
         valid_digest = @original_session.signature_digest
         described_class.new(@directory, @cookie, valid_digest).should be_a(GlobalSession::Session::Abstract)

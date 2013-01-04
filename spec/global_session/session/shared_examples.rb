@@ -34,7 +34,7 @@ shared_examples_for 'all subclasses of Session::Abstract' do
     end
 
     context 'when everything is copacetic' do
-      it 'should succeed' do
+      it 'succeeds' do
         described_class.new(@directory, @cookie).should be_a(GlobalSession::Session::Abstract)
       end
     end
@@ -43,7 +43,7 @@ shared_examples_for 'all subclasses of Session::Abstract' do
       before do
         @cookie = tamper_with_insecure_attributes(described_class, @cookie, {'favorite_color' => 'blue'})
       end
-      it 'should succeed' do
+      it 'succeeds' do
         described_class.new(@directory, @cookie).should be_a(GlobalSession::Session::Abstract)
       end
     end
@@ -52,7 +52,7 @@ shared_examples_for 'all subclasses of Session::Abstract' do
       before do
         @cookie = tamper_with_signed_attributes(described_class, @cookie, {'evil_haxor' => 'mwahaha'})
       end
-      it 'should raise SecurityError' do
+      it 'raises SecurityError' do
         lambda {
           described_class.new(@directory, @cookie)
         }.should raise_error(SecurityError)
@@ -68,7 +68,7 @@ shared_examples_for 'all subclasses of Session::Abstract' do
         mock_config('test/trust', ['authority2'])
         mock_config('test/authority', nil)
       end
-      it 'should raise SecurityError' do
+      it 'raises SecurityError' do
         lambda {
           described_class.new(@directory, @cookie)
         }.should raise_error(SecurityError)
@@ -80,7 +80,7 @@ shared_examples_for 'all subclasses of Session::Abstract' do
         fake_now = Time.at(Time.now.to_i + 3600)
         flexmock(Time).should_receive(:now).and_return(fake_now)
       end
-      it 'should raise ExpiredSession' do
+      it 'raises ExpiredSession' do
         lambda {
           described_class.new(@directory, @cookie)
         }.should raise_error(GlobalSession::ExpiredSession)
@@ -88,7 +88,7 @@ shared_examples_for 'all subclasses of Session::Abstract' do
     end
 
     context 'when an empty cookie is supplied' do
-      it 'should create a new valid session' do
+      it 'creates a new valid session' do
         described_class.new(@directory, '').valid?.should be_true
       end
 
@@ -98,7 +98,7 @@ shared_examples_for 'all subclasses of Session::Abstract' do
           flexmock(@directory).should_receive(:private_key).and_return(nil)
         end
 
-        it 'should create a new invalid session' do
+        it 'creates a new invalid session' do
           described_class.new(@directory, '').valid?.should be_false
         end
       end
@@ -108,7 +108,7 @@ shared_examples_for 'all subclasses of Session::Abstract' do
       bad_cookies = [ '#$(%*#@%^&#!($%*#', rand(2**256).to_s(16) ]
 
       bad_cookies.each do |cookie|
-        it 'should cope' do
+        it 'copes' do
           lambda {
             described_class.new(@directory, cookie)
           }.should raise_error(GlobalSession::MalformedCookie)
@@ -144,11 +144,11 @@ shared_examples_for 'all subclasses of Session::Abstract' do
     end
 
     context :new_record? do
-      it 'should return true when the session was just created' do
+      it 'returns true when the session was just created' do
         @session.new_record?.should be_true
       end
 
-      it 'should return false when the session was loaded from a cookie' do
+      it 'returns false when the session was loaded from a cookie' do
         loaded_session = described_class.new(@directory, @session.to_s)
         loaded_session.new_record?.should be_false
       end

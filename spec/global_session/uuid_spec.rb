@@ -1,6 +1,6 @@
 describe 'Global Session IDs' do
   context 'when generated using right_support' do
-    it 'choose have at least 50% unpredictable characters' do
+    it 'has at least 50% unpredictable characters' do
       uuids = []
       pos_to_freq = {}
 

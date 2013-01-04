@@ -50,7 +50,7 @@ describe GlobalSession::Directory do
       end
 
       context 'and a keystore with a correctly-named private key' do
-        it 'should succeed' do
+        it 'succeeds' do
           @keystore.create(@authority_name, true)
           GlobalSession::Directory.should === GlobalSession::Directory.new(mock_config, @keystore.dir)
         end
