@@ -105,7 +105,16 @@ module GlobalSession
     # MalformedCookie:: if the cookie was corrupt or malformed
     # SecurityError:: if signature is invalid or cookie is not signed by a trusted authority
     def create_session(*params)
-      Session.new(self, *params)
+      forced_version = configuration['cookie']['version']
+
+      case forced_version
+      when 2
+        Session::V2.new(self, *params)
+      when 1
+        Session::V1.new(self, *params)
+      else
+        Session.new(self, *params)
+      end
     end
 
     def local_authority_name

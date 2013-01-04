@@ -17,6 +17,5 @@ group :cucumber do
   gem 'mysql'
   gem 'sqlite3'
   gem 'sequel', '3.0.0'
-
 end
 

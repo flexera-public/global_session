@@ -39,6 +39,7 @@ module GlobalSession
   # * trust
   # * directory
   # * cookie
+  #     * version
   #     * name
   #     * domain
   #
