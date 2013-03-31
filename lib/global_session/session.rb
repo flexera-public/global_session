@@ -24,15 +24,15 @@ require 'global_session/session/v2'
 # by the different versions; it is responsible for detecting the version of
 # a given cookie, then instantiating a suitable session object.
 module GlobalSession::Session
-  def self.new(*args)
-    V2.new(*args)
-  rescue GlobalSession::MalformedCookie => e
-    V1.new(*args)
-  end
-
   def self.decode_cookie(*args)
     V2.decode_cookie(*args)
   rescue GlobalSession::MalformedCookie => e
     V1.decode_cookie(*args)
+  end
+
+  def self.new(directory, cookie=nil, valid_signature_digest=nil)
+    V2.new(directory, cookie)
+  rescue GlobalSession::MalformedCookie => e
+    V1.new(directory, cookie, valid_signature_digest)
   end
 end

@@ -49,7 +49,7 @@ module GlobalSession::Session
     # ExpiredSession:: if the session contained in the cookie has expired
     # MalformedCookie:: if the cookie was corrupt or malformed
     # SecurityError:: if signature is invalid or cookie is not signed by a trusted authority
-    def initialize(directory, cookie=nil, unused=nil)
+    def initialize(directory, cookie=nil)
       super(directory)
       @configuration = directory.configuration
       @schema_signed = Set.new((@configuration['attributes']['signed']))

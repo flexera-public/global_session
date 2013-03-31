@@ -88,18 +88,27 @@ module GlobalSession
         env['rack.cookies'] = {} unless env['rack.cookies']
 
         begin
+          err = nil
           read_cookie(env)
-        rescue Exception => e
-          env['global_session'] = @directory.create_session
-          handle_error('reading session cookie', env, e)
+        rescue Exception => read_err
+          err = read_err
+
+          # Catch "double whammy" errors
+          begin
+            env['global_session'] = @directory.create_session
+          rescue Exception => create_err
+            err = create_err
+          end
+
+          handle_error('reading session cookie', env, err)
         end
 
         tuple = nil
 
         begin
           tuple = @app.call(env)
-        rescue Exception => e
-          handle_error('processing request', env, e)
+        rescue Exception => read_err
+          handle_error('processing request', env, read_err)
           return tuple
         else
           renew_cookie(env)
@@ -109,16 +118,16 @@ module GlobalSession
       end
 
       protected
-      
+
       # Read a cookie from the Rack environment.
       #
       # === Parameters
       # env(Hash): Rack environment.
       def read_cookie(env)
-        if env['rack.cookies'].has_key?(@cookie_name)
-          env['global_session'] = @directory.create_session(env['rack.cookies'][@cookie_name])
-        elsif @cookie_retrieval && cookie = @cookie_retrieval.call(env)
-          env['global_session'] = @directory.create_session(cookie)
+        if @cookie_retrieval && (cookie = @cookie_retrieval.call(env))
+          env['global_session'] = @directory.load_session(cookie)
+        elsif env['rack.cookies'].has_key?(@cookie_name)
+          env['global_session'] = @directory.load_session(env['rack.cookies'][@cookie_name])
         else
           env['global_session'] = @directory.create_session
         end
@@ -131,7 +140,7 @@ module GlobalSession
       # === Parameters
       # env(Hash): Rack environment
       def renew_cookie(env)
-        return unless env['global_session'].directory.local_authority_name
+        return unless @directory.local_authority_name
         return if env['global_session.req.renew'] == false
 
         if (renew = @configuration['renew']) && env['global_session'] &&
@@ -145,7 +154,7 @@ module GlobalSession
       # === Parameters
       # env(Hash): Rack environment
       def update_cookie(env)
-        return unless env['global_session'].directory.local_authority_name
+        return unless @directory.local_authority_name
         return if env['global_session.req.update'] == false
 
         domain = @configuration['cookie']['domain'] || env['SERVER_NAME']
@@ -179,7 +188,7 @@ module GlobalSession
       # === Parameters
       # env(Hash): Rack environment
       def wipe_cookie(env)
-        return unless env['global_session'].directory.local_authority_name
+        return unless @directory.local_authority_name
         return if env['global_session.req.update'] == false
 
         domain = @configuration['cookie']['domain'] || env['SERVER_NAME']

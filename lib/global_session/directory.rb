@@ -92,9 +92,14 @@ module GlobalSession
     # Create a new Session, initialized against this directory and ready to
     # be used by the app.
     #
+    # DEPRECATED: If a cookie is provided, load an existing session from its
+    # serialized form. You should use #load_session for this instead.
+    #
+    # @see load_session
+    #
     # === Parameters
-    # directory(Directory):: directory implementation that the session should use for various operations
-    # cookie(String):: Optional, serialized global session cookie. If none is supplied, a new session is created.
+    # cookie(String):: DEPRECATED - Optional, serialized global session cookie. If none is supplied, a new session is created.
+    # valid_signature_digest(String):: DEPRECATED -  Optional,
     #
     # === Return
     # session(Session):: the newly-initialized session
@@ -104,17 +109,39 @@ module GlobalSession
     # ExpiredSession:: if the session contained in the cookie has expired
     # MalformedCookie:: if the cookie was corrupt or malformed
     # SecurityError:: if signature is invalid or cookie is not signed by a trusted authority
-    def create_session(*params)
+    def create_session(cookie=nil, valid_signature_digest=nil)
       forced_version = configuration['cookie']['version']
 
-      case forced_version
-      when 2
-        Session::V2.new(self, *params)
-      when 1
-        Session::V1.new(self, *params)
+      if cookie.nil?
+        # Create a legitimately new session
+        case forced_version
+        when 1
+          Session::V1.new(self, cookie, valid_signature_digest)
+        else
+          Session.new(self, cookie, valid_signature_digest)
+        end
       else
-        Session.new(self, *params)
+        warn "GlobalSession::Directory#create_session with an existing session is DEPRECATED -- use #load_session instead"
+        load_session(cookie, valid_signature_digest)
       end
+    end
+
+    # Unserialize an existing session cookie
+    #
+    # === Parameters
+    # cookie(String):: Optional, serialized global session cookie. If none is supplied, a new session is created.
+    # valid_signature_digest(String):: Optional,
+    #
+    # === Return
+    # session(Session):: the newly-initialized session
+    #
+    # ===Raise
+    # InvalidSession:: if the session contained in the cookie has been invalidated
+    # ExpiredSession:: if the session contained in the cookie has expired
+    # MalformedCookie:: if the cookie was corrupt or malformed
+    # SecurityError:: if signature is invalid or cookie is not signed by a trusted authority
+    def load_session(cookie, valid_signature_digest=nil)
+      Session.new(self, cookie, valid_signature_digest)
     end
 
     def local_authority_name

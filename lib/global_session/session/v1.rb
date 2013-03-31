@@ -24,12 +24,8 @@ require 'set'
 require 'zlib'
 
 module GlobalSession::Session
-  # Ladies and gentlemen: the one and only, star of the show, GLOBAL SESSION!
-  #
-  # Session is designed to act as much like a Hash as possible. You can use
-  # most of the methods you would use with Hash: [], has_key?, each, etc. It has a
-  # few additional methods that are specific to itself, mostly involving whether
-  # it's expired, valid, supports a certain key, etc.
+  # Global session V1 uses JSON serialization and Zlib compression. Its encoding looks something
+  # like this:
   #
   class V1 < Abstract
     # Utility method to decode a cookie; good for console debugging. This performs no

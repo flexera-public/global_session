@@ -281,7 +281,7 @@ describe GlobalSession::Rack::Middleware do
 
       it 'swallows client errors' do
         flexmock(GlobalSession::Session).should_receive(:new).once.and_raise(GlobalSession::ClientError)
-        flexmock(GlobalSession::Session).should_receive(:new).with(@directory).and_return(@fresh_session)
+        flexmock(GlobalSession::Session).should_receive(:new).once.and_return(@fresh_session)
         @app.call(@env)
         @env.should have_key('global_session')
         @env.should have_key('global_session.error')
@@ -290,7 +290,7 @@ describe GlobalSession::Rack::Middleware do
 
       it 'swallows configuration errors' do
         flexmock(GlobalSession::Session).should_receive(:new).once.and_raise(GlobalSession::ConfigurationError)
-        flexmock(GlobalSession::Session).should_receive(:new).with(@directory).and_return(@fresh_session)
+        flexmock(GlobalSession::Session).should_receive(:new).once.and_return(@fresh_session)
         @app.call(@env)
         @env.should have_key('global_session')
         @env.should have_key('global_session.error')
@@ -299,14 +299,14 @@ describe GlobalSession::Rack::Middleware do
 
       it 'raises other errors' do
         flexmock(GlobalSession::Session).should_receive(:new).once.and_raise(StandardError)
-        flexmock(GlobalSession::Session).should_receive(:new).with(@directory).and_return(@fresh_session)
+        flexmock(GlobalSession::Session).should_receive(:new).once.and_return(@fresh_session)
         @inner_app.should_receive(:call).never
         lambda { @app.call(@env) }.should raise_error(StandardError)
       end
       
       it "does not include the backtrace for expired session exceptions" do
         flexmock(GlobalSession::Session).should_receive(:new).once.and_raise(GlobalSession::ExpiredSession)
-        flexmock(GlobalSession::Session).should_receive(:new).with(@directory).and_return(@fresh_session)
+        flexmock(GlobalSession::Session).should_receive(:new).once.and_return(@fresh_session)
         @env["rack.logger"] = FakeLogger.new
         flexmock(@env["rack.logger"]).should_receive(:error).with("GlobalSession::ExpiredSession while reading session cookie: GlobalSession::ExpiredSession")
         @app.call(@env)

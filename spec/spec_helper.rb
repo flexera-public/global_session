@@ -6,23 +6,6 @@ require 'tempfile'
 require 'flexmock'
 require 'global_session'
 
-# Setup Rails (for Rails integration specs)
-gem 'actionpack', '>= 2.1.2'
-require 'action_controller'
-
-require 'global_session/rails'
-
-# Enable ActionController integration with Rails. Since we're not actually activating
-# the Rails plugin, we need to do this ourselves.
-# Enable ActionController integration.
-class << ActionController::Base
-  include GlobalSession::Rails::ActionControllerClassMethods
-end
-
-ActionController::Base.instance_eval do
-  include GlobalSession::Rails::ActionControllerInstanceMethods
-end
-
 Spec::Runner.configure do |config|
   config.mock_with :flexmock
 end
@@ -53,68 +36,6 @@ class KeyFactory
     FileUtils.rm_rf(@keystore)
   end
 end
-
-class StubRequest
-  attr_reader :env, :cookies, :params, :formats, :method, :fullpath
-  alias parameters params
-  alias filtered_parameters parameters
-  attr_accessor :session
-
-  def initialize(env, cookies, params, local_session={})
-    @env      = env
-    @cookies  = cookies
-    @params   = params
-    @session  = local_session
-    @formats  = [:html]
-    @method   = :post
-    @fullpath = '/'
-  end
-end
-
-class StubResponse
-  attr_accessor :body, :content_type, :status
-
-  def initialize(cookies)
-    @cookies = cookies
-  end
-
-  def set_cookie(key, hash)
-    @cookies[key] = hash[:value]
-  end
-end
-
-# Stub controller into which we manually wire the GlobalSession instance methods.
-# Normally this would be accomplished via the "has_global_session" class method of
-# ActionController::Base, but we want to avoid the configuration-related madness.
-class StubController < ActionController::Base
-  has_global_session
-
-  def initialize(env={}, cookies={}, local_session={}, params={})
-    super()
-
-    self.request  = StubRequest.new(env, cookies, params)
-    self.response = StubResponse.new(cookies)
-    @_session = local_session
-  end
-
-  def index
-    render :text=>'this is the index'
-  end
-
-  def show
-    render :text=>'this is the show page'
-  end
-
-  def method_for_action(action)
-    action = :index if action.nil? || !action.is_a?(String) || action.empty?
-    action.to_sym
-  end
-
-  def action_name
-    params[:action] || :index
-  end
-end
-
 
 module SpecHelper
   # Getter for the GlobalSession::Configuration object
