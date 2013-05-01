@@ -34,14 +34,15 @@ require 'spec/spec_helper'
 require 'global_session'
 
 class RightRailsTestWorld
-  class ShellCommandFailed < Exception; end
+  class ShellCommandFailed < Exception;
+  end
   include SpecHelper
 
-  @app_root = nil
+  @app_root       = nil
   @@database_name ||= "temp_global_session_#{Time.now.to_i}"
-  @@http_client = nil
+  @@http_client   = nil
 
-  @@app_roots = Set.new
+  @@app_roots   = Set.new
   @@server_pids = Set.new
 
   attr_accessor :server_pid, :rails_version
@@ -76,20 +77,29 @@ class RightRailsTestWorld
 
   # Run a shell command in app_dir, e.g. a rake task
   def app_shell(cmd, options={})
-    ignore_errors = options[:ignore_errors] || false
-    log = !!(Cucumber.logger)
+    options       = {:ignore_errors => false, :bundle_exec => true}.merge(options)
+    ignore_errors = options[:ignore_errors]
+    bundle_exec   = options[:bundle_exec]
+    log           = !!(Cucumber.logger)
+
+    cmd = "bundle exec #{cmd}" if bundle_exec
 
     Cucumber.logger.debug("bash> #{cmd}\n") if log
 
-    Dir.chdir(app_root) do
-      IO.popen("#{cmd} 2>&1", 'r') do |output|
-        output.sync = true
-        done = false
-        while !done
-          begin
-            Cucumber.logger.debug(output.readline + "\n") if log
-          rescue EOFError
-            done = true
+    Bundler.with_clean_env do
+      #Work around ActiveSupport 2.3.x bug where they use Mutex without requiring thread
+      ENV['RUBYOPT'] = '-rthread'
+
+      Dir.chdir(app_root) do
+        IO.popen("#{cmd} 2>&1", 'r') do |output|
+          output.sync = true
+          done        = false
+          while !done
+            begin
+              Cucumber.logger.debug(output.readline + "\n") if log
+            rescue EOFError
+              done = true
+            end
           end
         end
       end
@@ -99,8 +109,12 @@ class RightRailsTestWorld
   end
 
   def app_shell_with_log(cmd, options={})
+    log = !!(Cucumber.logger)
     delete_log
     app_shell("#{cmd} > #{log_file}", options)
+  rescue Exception => e
+    File.readlines(log_file).each { |l| Cucumber.logger.debug(l) } if log
+    raise
   end
 
   def log_file
@@ -112,30 +126,35 @@ class RightRailsTestWorld
   end
 
   MAX_CONSOLE_TIME = 60.0
-  BASEDIR = File.expand_path('../../..', __FILE__)
+  BASEDIR          = File.expand_path('../../..', __FILE__)
 
   # Run a console command using script/console
   def app_console(cmd, options={})
-    repeat = options[:repeat] || 1
+    repeat          = options[:repeat] || 1
     thing_to_return = options[:return] || :output
-    app_console = nil
+    app_console     = nil
 
-    if options[:detach]
-      Dir.chdir(app_root) do
-        app_console = IO.popen('script/console', 'r+')
-      end
-    else
-      @app_console_mutex.synchronize do
-        unless @app_console
-          Dir.chdir(app_root) do
-            @app_console = IO.popen('script/console', 'r+')
-          end
+    Bundler.with_clean_env do
+      #Work around ActiveSupport 2.3.x bug where they use Mutex without requiring thread
+      ENV['RUBYOPT'] = '-rthread'
+
+      if options[:detach]
+        Dir.chdir(app_root) do
+          app_console = IO.popen('bundle exec script/console', 'r+')
         end
-        app_console = @app_console
+      else
+        @app_console_mutex.synchronize do
+          unless @app_console
+            Dir.chdir(app_root) do
+              @app_console = IO.popen('bundle exec script/console', 'r+')
+            end
+          end
+          app_console = @app_console
+        end
       end
     end
 
-    t0   = Time.now.to_f
+    t0 = Time.now.to_f
     app_console.puts 'result = begin'
     repeat.times do
       app_console.puts cmd
@@ -158,7 +177,7 @@ class RightRailsTestWorld
         error = line.gsub('--OH NOES-- - ', '').chomp
       elsif line =~ /^--KTHXBYE--/
         result = line.split(' ', 2).second.chomp
-        done = true
+        done   = true
       else
         output << line
         Cucumber.logger.debug(line)
@@ -174,21 +193,21 @@ class RightRailsTestWorld
     end
 
     case options[:expect]
-      when String
-        result.should == options[:expect]
-      when Regexp
-        result.should =~ options[:expect]
-      when NilClass
-        #no expectation
+    when String
+      result.should == options[:expect]
+    when Regexp
+      result.should =~ options[:expect]
+    when NilClass
+      #no expectation
     end
 
     case thing_to_return
-      when :output
-        return output
-      when :result
-        return result
-      else
-        raise ArgumentError, "Unknown :return #{thing_to_return}"
+    when :output
+      return output
+    when :result
+      return result
+    else
+      raise ArgumentError, "Unknown :return #{thing_to_return}"
     end
   end
 
@@ -221,18 +240,17 @@ class RightRailsTestWorld
       f << File.read(template_path) + "gem 'global_session', :path => '#{BASEDIR}'\n"
     end
 
-    app_shell("rails _#{rails_version}_ . -q")
-
     # install all of the gems
     ENV['BUNDLE_GEMFILE'] = app_path('Gemfile')
-    Bundler.with_clean_env do
-      app_shell('bundle install')
-    end
+    app_shell('bundle install', :bundle_exec => false)
+
+    # create Rails app
+    app_shell("rails . -q")
   end
 
   # Run rails application
   def run_application
-    app_shell("./script/server -p #{application_port} -d")
+    app_shell("script/server -p #{application_port} -d")
     loop do
       begin
         TCPSocket.new('localhost', application_port).close
@@ -241,6 +259,7 @@ class RightRailsTestWorld
         Thread.pass
       end
     end
+
     self.server_pid = File.read(app_path('tmp', 'pids', 'server.pid')).to_i
     @@server_pids << server_pid
   end

@@ -5,8 +5,8 @@ Given /^a Rails ([\d\.]+) application$/ do |rails_version|
 end
 
 Given /^the app is configured to use global_session$/ do
-  When "I run './script/generate' with 'global_session'"
-  When "I run './script/generate' with 'global_session_authority'"
+  step "I run './script/generate' with 'global_session'"
+  step "I run './script/generate' with 'global_session_authority'"
 end
 
 Given /^a database$/ do
@@ -34,7 +34,7 @@ end
 
 Given /^I have a local session with data:$/ do |data|
   # Make sure that a local session exists in the DB
-  When "I send a GET request to 'happy/index'"
+  step "I send a GET request to 'happy/index'"
 
   session = '{ ' + data.raw.map do |pair|
     "'#{pair.first}' => '#{pair.last}'"

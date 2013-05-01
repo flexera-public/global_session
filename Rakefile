@@ -1,14 +1,13 @@
 # -*-ruby-*-
 require 'rubygems'
 require 'rake'
+require 'right_develop'
 require 'spec/rake/spectask'
-require 'rake/rdoctask'
 require 'rake/gempackagetask'
 require 'rake/clean'
 require 'cucumber/rake/task'
 
-desc "Run unit tests"
-task :default => :spec
+task :default => [:spec, :cucumber]
 
 desc "Run unit tests"
 Spec::Rake::SpecTask.new do |t|
@@ -18,24 +17,29 @@ Spec::Rake::SpecTask.new do |t|
   end
 end
 
-desc 'Generate documentation for the global_session plugin.'
-Rake::RDocTask.new(:rdoc) do |rdoc|
-  rdoc.rdoc_dir = 'rdoc'
-  rdoc.title    = 'global_session'
-  rdoc.options << '--line-numbers' << '--inline-source'
-  rdoc.rdoc_files.include('README.rdoc')
-  rdoc.rdoc_files.include('lib/**/*.rb')
-end
-
-desc "Build global_session gem"
-Rake::GemPackageTask.new(Gem::Specification.load("global_session.gemspec")) do |package|
-  package.need_zip = true
-  package.need_tar = true
-end
-
 desc "run functional tests"
 Cucumber::Rake::Task.new do |t|
   t.cucumber_opts = %w{--tags ~@slow --color --format pretty}
 end
 
+require 'jeweler'
+Jeweler::Tasks.new do |gem|
+  # gem is a Gem::Specification; see http://docs.rubygems.org/read/chapter/20 for more options
+  gem.name = "global_session"
+  gem.homepage = "https://github.com/rightscale/global_session"
+  gem.license = "MIT"
+  gem.summary = %Q{Secure single-domain session sharing plugin for Rack and Rails.}
+  gem.description = %Q{This Rack middleware allows several web apps in an authentication domain to share session state, facilitating single sign-on in a distributed web app. It only provides session sharing and does not concern itself with authentication or replication of the user database.}
+  gem.email = "support@rightscale.com"
+  gem.authors = ['Tony Spataro']
+  gem.files.exclude 'Gemfile*'
+  gem.files.exclude 'features/**/*'
+  gem.files.exclude 'fixtures/**/*'
+  gem.files.exclude 'features/**/*'
+  gem.files.exclude 'spec/**/*'
+end
+Jeweler::RubygemsDotOrgTasks.new
+
 CLEAN.include('pkg')
+
+RightDevelop::CI::RakeTask.new

@@ -231,11 +231,6 @@ describe GlobalSession::Rack::Middleware do
         @cookie_jar.should_receive(:[]=).with('global_session_cookie', FlexMock.on { |x| x[:value] != nil && x[:domain] == 'baz.foobar.com' })
         @app.call(@env)
       end
-
-      it 'sends session_invalidated message to the directory' do
-        flexmock(@directory).should_receive(:session_invalidated).once.and_return(true)
-        @app.call(@env)
-      end
     end
 
     context 'when the local system is not an authority' do

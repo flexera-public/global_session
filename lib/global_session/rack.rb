@@ -228,7 +228,6 @@ module GlobalSession
       # old_session(GlobalSession):: the now-invalidated session
       # new_session(GlobalSession):: the new session that will be sent to the client
       def perform_invalidation_callbacks(env, old_session, new_session)
-        @directory.session_invalidated(old_session.id, new_session.id)
         if (local_session = env[LOCAL_SESSION_KEY]) && local_session.respond_to?(:rename!)
           local_session.rename!(old_session, new_session)
         end
