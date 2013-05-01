@@ -242,7 +242,7 @@ class RightRailsTestWorld
 
     # install all of the gems
     ENV['BUNDLE_GEMFILE'] = app_path('Gemfile')
-    app_shell('bundle install', :bundle_exec => false)
+    app_shell('bundle install --local || bundle install', :bundle_exec => false)
 
     # create Rails app
     app_shell("rails . -q")

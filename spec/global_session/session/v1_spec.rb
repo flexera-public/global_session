@@ -40,7 +40,7 @@ describe GlobalSession::Session::V1 do
         count += 1
       end
 
-      (Float(size) / Float(count)).should be_close(340, 5)
+      (Float(size) / Float(count)).should be_close(340, 10)
     end
   end
 end
