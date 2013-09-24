@@ -77,7 +77,7 @@ shared_examples_for 'all subclasses of Session::Abstract' do
 
     context 'when the session is expired' do
       before do
-        fake_now = Time.at(Time.now.to_i + 3600)
+        fake_now = Time.at(Time.now.to_i + 3_600*2)
         flexmock(Time).should_receive(:now).and_return(fake_now)
       end
       it 'raises ExpiredSession' do

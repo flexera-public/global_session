@@ -311,11 +311,15 @@ module GlobalSession::Session
           hash.reject { |k,v| ['dx', 's'].include?(k) },
           :encoding=>GlobalSession::Encoding::Msgpack,
           :public_key=>@directory.authorities[authority])
-      signed_hash.verify!(signature, expired_at)
 
-      #Check expiration
-      unless expired_at > Time.now.utc
-        raise GlobalSession::ExpiredSession, "Session expired at #{expired_at}"
+      begin
+        signed_hash.verify!(signature, expired_at)
+      rescue SecurityError => e
+        if e.message =~ /expired/
+          raise GlobalSession::ExpiredSession, "Session expired at #{expired_at}"
+        else
+          raise SecurityError, "Global session verification failure; suspected tampering: " + e.message
+        end
       end
 
       #Check other validity (delegate to directory)
