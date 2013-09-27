@@ -80,9 +80,5 @@ require 'global_session/directory'
 require 'global_session/encoding'
 require 'global_session/session'
 
-#Preemptively try to activate the Rails plugin, ignoring errors
-begin
-  require 'global_session/rails'
-rescue Exception => e
-  #no-op
-end
+# TODO: This should be done in the caller instead
+require 'global_session/rails'
