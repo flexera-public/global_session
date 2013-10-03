@@ -19,6 +19,15 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+# Standard library (or possibly gem) dependencies
+require 'json'
+
+begin
+  require 'msgpack'
+rescue LoadError => e
+  # Msgpack is optional (only required for V2 session support)
+end
+
 module GlobalSession
   # Various encoding (not encryption!) techniques used by the global session plugin.
   #
@@ -26,6 +35,10 @@ module GlobalSession
     # JSON serializer, used to serialize Hash objects in a form suitable
     # for stuffing into a cookie.
     #
+    # Note that the #load method does not have the serialization semantics of the
+    # Marshal/YAML load/dump interface; any embedded Ruby objects will remain in
+    # their hash-serialized form. (Global session contents are not trustworthy enough
+    # to allow Ruby object serialization.)
     module JSON
       # Unserialize JSON to Hash.
       #
@@ -35,7 +48,7 @@ module GlobalSession
       # === Return
       # value(Hash):: An unserialized Ruby Hash
       def self.load(json)
-        ::JSON.load(json)
+        ::JSON.parse(json)
       end
 
       # Serialize Hash to JSON document.
@@ -46,7 +59,7 @@ module GlobalSession
       # === Return
       # json(String):: A JSON-serialized representation of +value+
       def self.dump(object)
-        return object.to_json
+        return ::JSON.dump(object)
       end
     end
 
@@ -54,11 +67,19 @@ module GlobalSession
     # for serializers.
     module Msgpack
       def self.load(binary)
-        MessagePack.unpack(binary)
+        if defined?(MessagePack)
+          MessagePack.unpack(binary)
+        else
+          raise NotImplementedError, "::MessagePack undefined; please install 'msgpack' gem to enable this optional functionality"
+        end
       end
 
       def self.dump(object)
-        object.to_msgpack
+        if object.respond_to?(:to_msgpack)
+          object.to_msgpack
+        else
+          raise NotImplementedError, "#to_msgpack unavailable; please install 'msgpack' gem to enable this optional functionality"
+        end
       end
     end
 

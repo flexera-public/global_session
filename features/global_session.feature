@@ -18,12 +18,6 @@ Feature: GlobalSession
     Given a valid global session cookie
     Then everything is ok
 
-  Scenario: reusing the cryptographic signature
-    Given a valid V1 cookie
-    And a trusted signature is passed in
-    And I have a valid digest
-    Then I should not recompute the signature
-
   Scenario: changing insecure attributes
     Given a valid global session cookie
     And an insecure attribute has changed

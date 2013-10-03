@@ -14,26 +14,34 @@ describe GlobalSession::Session::Abstract do
     @keystore.destroy
   end
 
-  context 'given a valid session' do
-    before(:each) do
-      mock_config('test/trust', ['authority1'])
-      mock_config('test/authority', 'authority1')
-      @directory = GlobalSession::Directory.new(mock_config, @keystore.dir)
-      @session = described_class.new(@directory)
-    end
-
-    context :to_hash do
+  # Abstract#initialize can't be invoked directly, so we test its subclasses
+  # instead.
+  GlobalSession::Session::Abstract.subclasses.each do |klass|
+    context "given a valid serialized #{klass}" do
+      let(:subclass) { klass.to_const }
       before(:each) do
-        @hash = @session.to_hash
+        mock_config('test/trust', ['authority1'])
+        mock_config('test/authority', 'authority1')
+        mock_config('test/timeout', 60)
+        mock_config('test/attributes/signed', ['user'])
+        mock_config('test/attributes/unsigned', ['account'])
+        @directory = GlobalSession::Directory.new(mock_config, @keystore.dir)
+        @session = subclass.new(@directory)
       end
 
-      it 'includes metadata' do
-        @hash[:metadata][:id].should == @session.id
-        @hash[:metadata][:created_at].should == @session.created_at
-        @hash[:metadata][:expired_at].should == @session.expired_at
-        @hash[:metadata][:authority].should == @session.authority
-        @hash[:signed].each_pair { |k, v| @session[k].should == v }
-        @hash[:insecure].each_pair { |k, v| @session[k].should == v }
+      context :to_hash do
+        before(:each) do
+          @hash = @session.to_hash
+        end
+
+        it 'includes metadata' do
+          @hash[:metadata][:id].should == @session.id
+          @hash[:metadata][:created_at].should == @session.created_at
+          @hash[:metadata][:expired_at].should == @session.expired_at
+          @hash[:metadata][:authority].should == @session.authority
+          @hash[:signed].each_pair { |k, v| @session[k].should == v }
+          @hash[:insecure].each_pair { |k, v| @session[k].should == v }
+        end
       end
     end
   end

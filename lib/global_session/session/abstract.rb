@@ -15,10 +15,26 @@ module GlobalSession::Session
     # ExpiredSession:: if the session contained in the cookie has expired
     # MalformedCookie:: if the cookie was corrupt or malformed
     # SecurityError:: if signature is invalid or cookie is not signed by a trusted authority
-    def initialize(directory)
+    def initialize(directory, cookie=nil)
       @directory = directory
       @signed = {}
       @insecure = {}
+
+      @configuration = directory.configuration
+      @schema_signed = Set.new((@configuration['attributes']['signed']))
+      @schema_insecure = Set.new((@configuration['attributes']['insecure']))
+
+      if cookie && !cookie.empty?
+        load_from_cookie(cookie)
+      elsif @directory.local_authority_name
+        create_from_scratch
+      else
+        create_invalid
+      end
+    end
+
+    def to_s
+      inspect
     end
 
     # @return a representation of the object suitable for printing to the console
@@ -51,6 +67,45 @@ module GlobalSession::Session
       {}
     end
 
+    # @return [true,false] true if this session was created in-process, false if it was initialized from a cookie
+    def new_record?
+      @cookie.nil?
+    end
+
+    # Determine whether the session is valid. This method simply delegates to the
+    # directory associated with this session.
+    #
+    # === Return
+    # valid(true|false):: True if the session is valid, false otherwise
+    def valid?
+      @directory.valid_session?(@id, @expired_at)
+    end
+
+    # Determine whether the global session schema allows a given key to be placed
+    # in the global session.
+    #
+    # === Parameters
+    # key(String):: The name of the key
+    #
+    # === Return
+    # supported(true|false):: Whether the specified key is supported
+    def supports_key?(key)
+      @schema_signed.include?(key) || @schema_insecure.include?(key)
+    end
+
+    # Determine whether this session contains a value with the specified key.
+    #
+    # === Parameters
+    # key(String):: The name of the key
+    #
+    # === Return
+    # contained(true|false):: Whether the session currently has a value for the specified key.
+    def has_key?(key)
+      @signed.has_key?(key) || @insecure.has_key?(key)
+    end
+
+    alias :key? :has_key?
+
     # Invalidate this session by reporting its UUID to the Directory.
     #
     # === Return
@@ -78,6 +133,18 @@ module GlobalSession::Session
       unless @directory.local_authority_name
         raise GlobalSession::NoAuthority, 'Cannot change secure session attributes; we are not an authority'
       end
+    end
+
+    def load_from_cookie(cookie)
+      raise NotImplementedError, "Subclass responsibility"
+    end
+
+    def create_from_scratch
+      raise NotImplementedError, "Subclass responsibility"
+    end
+
+    def create_invalid
+      raise NotImplementedError, "Subclass responsibility"
     end
   end
 end

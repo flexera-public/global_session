@@ -24,6 +24,10 @@
 require 'rubygems'
 require 'bundler/setup'
 
+$: << File.expand_path('../../..', __FILE__)
+# We're using Jeweler, so our Gemfile can't reference our gemspec
+$: << File.expand_path('../../../lib', __FILE__)
+
 require 'tempfile'
 require 'shellwords'
 require 'thread'

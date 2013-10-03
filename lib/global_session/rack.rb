@@ -157,7 +157,6 @@ module GlobalSession
         return unless @directory.local_authority_name
         return if env['global_session.req.update'] == false
 
-        domain = @configuration['cookie']['domain'] || env['SERVER_NAME']
         session = env['global_session']
 
         if session
@@ -172,11 +171,14 @@ module GlobalSession
           expires = @configuration['ephemeral'] ? nil : session.expired_at
           unless env['rack.cookies'][@cookie_name] == value
             env['rack.cookies'][@cookie_name] =
-                {:value => value, :domain => domain, :expires => expires, :httponly=>true}
+                {:value => value,
+                 :domain => cookie_domain(env),
+                 :expires => expires,
+                 :httponly=>true}
           end
         else
           # write an empty cookie
-          env['rack.cookies'][@cookie_name] = {:value => nil, :domain => domain, :expires => Time.at(0)}
+          wipe_cookie(env)
         end
       rescue Exception => e
         wipe_cookie(env)
@@ -191,8 +193,9 @@ module GlobalSession
         return unless @directory.local_authority_name
         return if env['global_session.req.update'] == false
 
-        domain = @configuration['cookie']['domain'] || env['SERVER_NAME']
-        env['rack.cookies'][@cookie_name] = {:value => nil, :domain => domain, :expires => Time.at(0)}
+        env['rack.cookies'][@cookie_name] = {:value => nil,
+                                             :domain => cookie_domain(env),
+                                             :expires => Time.at(0)}
       end
 
       # Handle exceptions that occur during app invocation. This will either save the error
@@ -233,6 +236,26 @@ module GlobalSession
         end
 
         true
+      end
+
+      # Determine the domain name for which we should set the cookie. Uses the domain specified
+      # in the configuration if one is found; otherwise, uses the SERVER_NAME from the request
+      # but strips off the first component if the domain name contains more than two components.
+      #
+      # === Parameters
+      # env(Hash):: the Rack environment hash
+      def cookie_domain(env)
+        if @configuration['cookie'].key?('domain')
+          # Use the explicitly provided domain name
+          domain = @configuration['cookie']['domain']
+        else
+          # Use the server name, but strip off the most specific component
+          parts = env['SERVER_NAME'].split('.')
+          parts = parts[1..-1] if parts.length > 2
+          domain = parts.join('.')
+        end
+
+        domain
       end
     end
   end

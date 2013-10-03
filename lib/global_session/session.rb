@@ -6,6 +6,7 @@ end
 require 'global_session/session/abstract'
 require 'global_session/session/v1'
 require 'global_session/session/v2'
+require 'global_session/session/v3'
 
 # Ladies and gentlemen: the one and only, star of the show, GLOBAL SESSION!
 #
@@ -24,15 +25,27 @@ require 'global_session/session/v2'
 # by the different versions; it is responsible for detecting the version of
 # a given cookie, then instantiating a suitable session object.
 module GlobalSession::Session
-  def self.decode_cookie(*args)
-    V2.decode_cookie(*args)
-  rescue GlobalSession::MalformedCookie => e
-    V1.decode_cookie(*args)
+  # Decode a global session cookie without
+  def self.decode_cookie(cookie)
+    guess_version(cookie).decode_cookie(cookie)
   end
 
   def self.new(directory, cookie=nil, valid_signature_digest=nil)
-    V2.new(directory, cookie)
-  rescue GlobalSession::MalformedCookie => e
-    V1.new(directory, cookie, valid_signature_digest)
+    guess_version(cookie).new(directory, cookie)
+  end
+
+  private
+
+  def self.guess_version(cookie)
+    case cookie
+    when /^WzM/
+      V3
+    when /^l9o/
+      V2
+    when /^eNo/
+      V1
+    else
+      V3
+    end
   end
 end

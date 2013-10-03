@@ -68,7 +68,13 @@ module SpecHelper
   def tamper_with_signed_attributes(klass, cookie, insecure_attributes)
     zbin = GlobalSession::Encoding::Base64Cookie.load(cookie)
 
-    if klass == GlobalSession::Session::V2
+    if klass == GlobalSession::Session::V3
+      array, sig = GlobalSession::Session::V3.decode_cookie(cookie)
+      array[5] = insecure_attributes
+      json = GlobalSession::Encoding::JSON.dump(array)
+      bin = GlobalSession::Session::V3.join_body(json, sig)
+      zbin = bin
+    elsif klass == GlobalSession::Session::V2
       bin = zbin
       array = GlobalSession::Encoding::Msgpack.load(bin)
       array[4] = insecure_attributes
@@ -90,7 +96,13 @@ module SpecHelper
   def tamper_with_insecure_attributes(klass, cookie, insecure_attributes)
     zbin = GlobalSession::Encoding::Base64Cookie.load(cookie)
 
-    if klass == GlobalSession::Session::V2
+    if klass == GlobalSession::Session::V3
+      array, sig = GlobalSession::Session::V3.decode_cookie(cookie)
+      array[6] = insecure_attributes
+      json = GlobalSession::Encoding::JSON.dump(array)
+      bin = GlobalSession::Session::V3.join_body(json, sig)
+      zbin = bin
+    elsif klass == GlobalSession::Session::V2
       bin = zbin
       array = GlobalSession::Encoding::Msgpack.load(bin)
       array[5] = insecure_attributes

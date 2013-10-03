@@ -1,4 +1,4 @@
-Feature: Rails 2.3.8
+Feature: Rails 2.3.8 generators
   In order to ensure full compatibility with different Rails versions
   Developers can use global_session with Rails 2.3.8
 

@@ -171,10 +171,10 @@ describe GlobalSession::Rack::Middleware do
     it 'wipes the cookie' do
       #First we'll wipe the old cookie
       @cookie_jar.should_receive(:[]=).with('global_session_cookie',
-                                            FlexMock.hsh(:value=>nil, :domain=>'baz.foobar.com'))
+                                            FlexMock.hsh(:value=>nil, :domain=>'foobar.com'))
       #Then we'll set a new cookie
       @cookie_jar.should_receive(:[]=).with('global_session_cookie',
-                                            FlexMock.on { |x| x[:value] != nil && x[:domain] == 'baz.foobar.com' })
+                                            FlexMock.on { |x| x[:value] != nil && x[:domain] == 'foobar.com' })
       @app.call(@env)
     end
     
@@ -195,8 +195,8 @@ describe GlobalSession::Rack::Middleware do
       @env['SERVER_NAME'] = 'baz.foobar.com'
     end
 
-    it 'uses the server name associated with the HTTP request' do
-      @cookie_jar.should_receive(:[]=).with('global_session_cookie', FlexMock.hsh(:domain=>'baz.foobar.com'))
+    it 'uses the domain name associated with the HTTP request' do
+      @cookie_jar.should_receive(:[]=).with('global_session_cookie', FlexMock.hsh(:domain=>'foobar.com'))
       @app.call(@env)
     end
 
@@ -228,7 +228,7 @@ describe GlobalSession::Rack::Middleware do
       end
 
       it 'generates a new session and saves it to a cookie' do
-        @cookie_jar.should_receive(:[]=).with('global_session_cookie', FlexMock.on { |x| x[:value] != nil && x[:domain] == 'baz.foobar.com' })
+        @cookie_jar.should_receive(:[]=).with('global_session_cookie', FlexMock.on { |x| x[:value] != nil && x[:domain] == 'foobar.com' })
         @app.call(@env)
       end
     end
@@ -270,13 +270,14 @@ describe GlobalSession::Rack::Middleware do
 
     context 'with errors' do
       before(:each) do
+        @cookie_jar.should_receive(:has_key?).with('global_session_cookie').and_return(true)
         @cookie_jar.should_receive(:[]).with('global_session_cookie') #any number of times
         @fresh_session = GlobalSession::Session.new(@directory)
       end
 
       it 'swallows client errors' do
-        flexmock(GlobalSession::Session).should_receive(:new).once.and_raise(GlobalSession::ClientError)
-        flexmock(GlobalSession::Session).should_receive(:new).once.and_return(@fresh_session)
+        flexmock(@directory).should_receive(:load_session).once.and_raise(GlobalSession::ClientError)
+        flexmock(@directory).should_receive(:create_session).once.and_return(@fresh_session)
         @app.call(@env)
         @env.should have_key('global_session')
         @env.should have_key('global_session.error')
@@ -284,8 +285,8 @@ describe GlobalSession::Rack::Middleware do
       end
 
       it 'swallows configuration errors' do
-        flexmock(GlobalSession::Session).should_receive(:new).once.and_raise(GlobalSession::ConfigurationError)
-        flexmock(GlobalSession::Session).should_receive(:new).once.and_return(@fresh_session)
+        flexmock(@directory).should_receive(:load_session).once.and_raise(GlobalSession::ConfigurationError)
+        flexmock(@directory).should_receive(:create_session).once.and_return(@fresh_session)
         @app.call(@env)
         @env.should have_key('global_session')
         @env.should have_key('global_session.error')
@@ -293,15 +294,15 @@ describe GlobalSession::Rack::Middleware do
       end
 
       it 'raises other errors' do
-        flexmock(GlobalSession::Session).should_receive(:new).once.and_raise(StandardError)
-        flexmock(GlobalSession::Session).should_receive(:new).once.and_return(@fresh_session)
+        flexmock(@directory).should_receive(:load_session).once.and_raise(StandardError)
+        flexmock(@directory).should_receive(:create_session).once.and_return(@fresh_session)
         @inner_app.should_receive(:call).never
         lambda { @app.call(@env) }.should raise_error(StandardError)
       end
       
       it "does not include the backtrace for expired session exceptions" do
-        flexmock(GlobalSession::Session).should_receive(:new).once.and_raise(GlobalSession::ExpiredSession)
-        flexmock(GlobalSession::Session).should_receive(:new).once.and_return(@fresh_session)
+        flexmock(@directory).should_receive(:load_session).once.and_raise(GlobalSession::ExpiredSession)
+        flexmock(@directory).should_receive(:create_session).once.and_return(@fresh_session)
         @env["rack.logger"] = FakeLogger.new
         flexmock(@env["rack.logger"]).should_receive(:error).with("GlobalSession::ExpiredSession while reading session cookie: GlobalSession::ExpiredSession")
         @app.call(@env)

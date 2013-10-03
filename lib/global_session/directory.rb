@@ -99,7 +99,6 @@ module GlobalSession
     #
     # === Parameters
     # cookie(String):: DEPRECATED - Optional, serialized global session cookie. If none is supplied, a new session is created.
-    # valid_signature_digest(String):: DEPRECATED -  Optional,
     #
     # === Return
     # session(Session):: the newly-initialized session
@@ -109,20 +108,24 @@ module GlobalSession
     # ExpiredSession:: if the session contained in the cookie has expired
     # MalformedCookie:: if the cookie was corrupt or malformed
     # SecurityError:: if signature is invalid or cookie is not signed by a trusted authority
-    def create_session(cookie=nil, valid_signature_digest=nil)
+    def create_session(cookie=nil)
       forced_version = configuration['cookie']['version']
 
       if cookie.nil?
         # Create a legitimately new session
         case forced_version
+        when 3, nil
+          Session::V3.new(self, cookie)
+        when 2
+          Session::V2.new(self, cookie)
         when 1
-          Session::V1.new(self, cookie, valid_signature_digest)
+          Session::V1.new(self, cookie)
         else
-          Session.new(self, cookie, valid_signature_digest)
+          raise ArgumentError, "Unknown value #{forced_version} for configuration.cookie.version" 
         end
       else
         warn "GlobalSession::Directory#create_session with an existing session is DEPRECATED -- use #load_session instead"
-        load_session(cookie, valid_signature_digest)
+        load_session(cookie)
       end
     end
 
@@ -130,7 +133,6 @@ module GlobalSession
     #
     # === Parameters
     # cookie(String):: Optional, serialized global session cookie. If none is supplied, a new session is created.
-    # valid_signature_digest(String):: Optional,
     #
     # === Return
     # session(Session):: the newly-initialized session
@@ -140,8 +142,8 @@ module GlobalSession
     # ExpiredSession:: if the session contained in the cookie has expired
     # MalformedCookie:: if the cookie was corrupt or malformed
     # SecurityError:: if signature is invalid or cookie is not signed by a trusted authority
-    def load_session(cookie, valid_signature_digest=nil)
-      Session.new(self, cookie, valid_signature_digest)
+    def load_session(cookie)
+      Session.new(self, cookie)
     end
 
     def local_authority_name

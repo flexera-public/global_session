@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{global_session}
-  s.version = "2.0.3"
+  s.version = "3.0.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tony Spataro"]
@@ -36,6 +36,7 @@ Gem::Specification.new do |s|
     "lib/global_session/session/abstract.rb",
     "lib/global_session/session/v1.rb",
     "lib/global_session/session/v2.rb",
+    "lib/global_session/session/v3.rb",
     "rails/init.rb",
     "rails_generators/global_session/USAGE",
     "rails_generators/global_session/global_session_generator.rb",
@@ -54,51 +55,51 @@ Gem::Specification.new do |s|
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<right_support>, ["~> 2.5"])
-      s.add_runtime_dependency(%q<simple_uuid>, [">= 0.2.0"])
       s.add_runtime_dependency(%q<json>, ["~> 1.4"])
-      s.add_runtime_dependency(%q<msgpack>, ["~> 0.4"])
       s.add_runtime_dependency(%q<rack-contrib>, ["~> 1.0"])
-      s.add_development_dependency(%q<rake>, ["~> 0.8"])
-      s.add_development_dependency(%q<rspec>, ["~> 1.3"])
+      s.add_runtime_dependency(%q<right_support>, [">= 2.8.1", "< 3.0"])
+      s.add_runtime_dependency(%q<simple_uuid>, [">= 0.2.0"])
       s.add_development_dependency(%q<cucumber>, ["~> 1.0"])
-      s.add_development_dependency(%q<right_develop>, ["~> 1.2"])
-      s.add_development_dependency(%q<flexmock>, ["~> 0.8"])
-      s.add_development_dependency(%q<jeweler>, ["~> 1.8.3"])
-      s.add_development_dependency(%q<httpclient>, [">= 0"])
-      s.add_development_dependency(%q<ruby-debug>, ["~> 0.10"])
       s.add_development_dependency(%q<debugger>, ["~> 1.5"])
+      s.add_development_dependency(%q<flexmock>, ["~> 0.8"])
+      s.add_development_dependency(%q<httpclient>, [">= 0"])
+      s.add_development_dependency(%q<jeweler>, ["~> 1.8.3"])
+      s.add_development_dependency(%q<msgpack>, ["~> 0.4"])
+      s.add_development_dependency(%q<rake>, ["~> 0.8"])
+      s.add_development_dependency(%q<right_develop>, ["~> 1.2"])
+      s.add_development_dependency(%q<rspec>, ["~> 1.3"])
+      s.add_development_dependency(%q<ruby-debug>, ["~> 0.10"])
     else
-      s.add_dependency(%q<right_support>, ["~> 2.5"])
-      s.add_dependency(%q<simple_uuid>, [">= 0.2.0"])
       s.add_dependency(%q<json>, ["~> 1.4"])
-      s.add_dependency(%q<msgpack>, ["~> 0.4"])
       s.add_dependency(%q<rack-contrib>, ["~> 1.0"])
-      s.add_dependency(%q<rake>, ["~> 0.8"])
-      s.add_dependency(%q<rspec>, ["~> 1.3"])
+      s.add_dependency(%q<right_support>, [">= 2.8.1", "< 3.0"])
+      s.add_dependency(%q<simple_uuid>, [">= 0.2.0"])
       s.add_dependency(%q<cucumber>, ["~> 1.0"])
-      s.add_dependency(%q<right_develop>, ["~> 1.2"])
-      s.add_dependency(%q<flexmock>, ["~> 0.8"])
-      s.add_dependency(%q<jeweler>, ["~> 1.8.3"])
-      s.add_dependency(%q<httpclient>, [">= 0"])
-      s.add_dependency(%q<ruby-debug>, ["~> 0.10"])
       s.add_dependency(%q<debugger>, ["~> 1.5"])
+      s.add_dependency(%q<flexmock>, ["~> 0.8"])
+      s.add_dependency(%q<httpclient>, [">= 0"])
+      s.add_dependency(%q<jeweler>, ["~> 1.8.3"])
+      s.add_dependency(%q<msgpack>, ["~> 0.4"])
+      s.add_dependency(%q<rake>, ["~> 0.8"])
+      s.add_dependency(%q<right_develop>, ["~> 1.2"])
+      s.add_dependency(%q<rspec>, ["~> 1.3"])
+      s.add_dependency(%q<ruby-debug>, ["~> 0.10"])
     end
   else
-    s.add_dependency(%q<right_support>, ["~> 2.5"])
-    s.add_dependency(%q<simple_uuid>, [">= 0.2.0"])
     s.add_dependency(%q<json>, ["~> 1.4"])
-    s.add_dependency(%q<msgpack>, ["~> 0.4"])
     s.add_dependency(%q<rack-contrib>, ["~> 1.0"])
-    s.add_dependency(%q<rake>, ["~> 0.8"])
-    s.add_dependency(%q<rspec>, ["~> 1.3"])
+    s.add_dependency(%q<right_support>, [">= 2.8.1", "< 3.0"])
+    s.add_dependency(%q<simple_uuid>, [">= 0.2.0"])
     s.add_dependency(%q<cucumber>, ["~> 1.0"])
-    s.add_dependency(%q<right_develop>, ["~> 1.2"])
-    s.add_dependency(%q<flexmock>, ["~> 0.8"])
-    s.add_dependency(%q<jeweler>, ["~> 1.8.3"])
-    s.add_dependency(%q<httpclient>, [">= 0"])
-    s.add_dependency(%q<ruby-debug>, ["~> 0.10"])
     s.add_dependency(%q<debugger>, ["~> 1.5"])
+    s.add_dependency(%q<flexmock>, ["~> 0.8"])
+    s.add_dependency(%q<httpclient>, [">= 0"])
+    s.add_dependency(%q<jeweler>, ["~> 1.8.3"])
+    s.add_dependency(%q<msgpack>, ["~> 0.4"])
+    s.add_dependency(%q<rake>, ["~> 0.8"])
+    s.add_dependency(%q<right_develop>, ["~> 1.2"])
+    s.add_dependency(%q<rspec>, ["~> 1.3"])
+    s.add_dependency(%q<ruby-debug>, ["~> 0.10"])
   end
 end
 

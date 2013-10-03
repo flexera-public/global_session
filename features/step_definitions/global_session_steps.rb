@@ -42,7 +42,3 @@ end
 Then /^everything is ok$/ do
   GlobalSession::Session.new(@directory, @cookie, @valid_digest).should be_a(GlobalSession::Session::Abstract)
 end
-
-Then /^I should not recompute the signature$/ do
-  GlobalSession::Session.new(@directory, @cookie, @valid_digest).should be_a(GlobalSession::Session::Abstract)
-end

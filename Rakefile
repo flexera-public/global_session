@@ -3,7 +3,7 @@ require 'rubygems'
 require 'rake'
 require 'right_develop'
 require 'spec/rake/spectask'
-require 'rake/gempackagetask'
+require 'rubygems/package_task'
 require 'rake/clean'
 require 'cucumber/rake/task'
 

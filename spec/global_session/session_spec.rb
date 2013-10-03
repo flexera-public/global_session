@@ -22,38 +22,25 @@ describe GlobalSession::Session do
     @directory        = GlobalSession::Directory.new(mock_config, @keystore.dir)
   end
 
-  context 'given a valid V2 cookie' do
-    before :each do
-      @cookie = GlobalSession::Session::V2.new(@directory).to_s
-    end
-
-    context :new do
-      it 'creates a V2 session' do
-        @session = GlobalSession::Session.new(@directory, @cookie)
-        @session.should be_a(GlobalSession::Session::V2)
+  [GlobalSession::Session::V1,GlobalSession::Session::V2,GlobalSession::Session::V3].each do |k|
+    context "given a valid serialized #{k}" do
+      before :each do
+        @cookie = k.new(@directory).to_s
       end
-    end
 
-    context :decode_cookie do
-      it 'returns a hash with some useful stuff'
-    end
-  end
-
-  context 'given a valid V1 cookie' do
-    before :each do
-      @session = GlobalSession::Session::V1.new(@directory)
-      @cookie = @session.to_s
-    end
-
-    context :new do
-      it 'creates a V1 session' do
-        @session = GlobalSession::Session.new(@directory, @cookie)
-        @session.should be_a(GlobalSession::Session::V1)
+      context :new do
+        it 'creates a compatible session object' do
+          @session = GlobalSession::Session.new(@directory, @cookie)
+          @session.should be_a(k)
+        end
       end
-    end
 
-    context :decode_cookie do
-      it 'returns a hash with some useful stuff'
+      context :decode_cookie do
+        it 'returns useful debug info' do
+          h = k.decode_cookie(@cookie)
+          h.should respond_to(:each)
+        end
+      end
     end
   end
 

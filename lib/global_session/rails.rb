@@ -20,6 +20,8 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 require 'rack/contrib/cookies'
+
+# lib/global_session.rb does this for us, but just in case this file is required directly...
 require 'action_pack'
 require 'action_controller'
 

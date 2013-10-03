@@ -75,8 +75,18 @@ describe GlobalSession::Directory do
     end
 
     context 'given a configuration that does not specify cookie/version' do
-      it 'creates a V2 session' do
-        @directory.create_session.should be_a(GlobalSession::Session::V2)
+      it 'creates a V3 session' do
+        @directory.create_session.should be_a(GlobalSession::Session::V3)
+      end
+    end
+
+    context 'given a configuration that contains cookie/version=3' do
+      before(:each) do
+        mock_config('test/cookie/version', 3)
+      end
+
+      it 'creates a V3 session' do
+        @directory.create_session.should be_a(GlobalSession::Session::V3)
       end
     end
 

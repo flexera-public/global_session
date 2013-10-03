@@ -24,9 +24,20 @@ require 'set'
 require 'zlib'
 
 module GlobalSession::Session
-  # Global session V1 uses JSON serialization and Zlib compression. Its encoding looks something
-  # like this:
+  # V1 uses JSON serialization and Zlib compression. Its JSON structure is a Hash
+  # with the following format:
+  #  {'id': <uuid_string> ,
+  #   'a': <signing_authority_string>,
+  #   'tc': <creation_timestamp_integer>,
+  #   'te': <expiration_timestamp_integer>,
+  #   'ds': {<signed_data_hash>},
+  #   'dx': {<unsigned_data_hash>},
+  #   's': <binary_signature_string>}
   #
+  # Limitations of V1 include the following:
+  # * Compressing the JSON usually INCREASES the size of the compressed data
+  # * The sign and verify algorithms, while safe, do not comply fully with PKCS7; they rely on the
+  #   OpenSSL low-level crypto API instead of using the higher-level EVP (envelope) API.
   class V1 < Abstract
     # Utility method to decode a cookie; good for console debugging. This performs no
     # validation or security check of any sort.
@@ -39,53 +50,12 @@ module GlobalSession::Session
       return GlobalSession::Encoding::JSON.load(json)
     end
 
-    # Create a new global session object.
-    #
-    # === Parameters
-    # directory(Directory):: directory implementation that the session should use for various operations
-    # cookie(String):: Optional, serialized global session cookie. If none is supplied, a new session is created.
-    # valid_signature_digest(String):: Optional, already-trusted signature. If supplied, the expensive RSA-verify operation will be skipped if the cookie's signature matches the value supplied.
-    #
-    # ===Raise
-    # InvalidSession:: if the session contained in the cookie has been invalidated
-    # ExpiredSession:: if the session contained in the cookie has expired
-    # MalformedCookie:: if the cookie was corrupt or malformed
-    # SecurityError:: if signature is invalid or cookie is not signed by a trusted authority
-    def initialize(directory, cookie=nil, valid_signature_digest=nil)
-      super(directory)
-      @configuration = directory.configuration
-      @schema_signed = Set.new((@configuration['attributes']['signed']))
-      @schema_insecure = Set.new((@configuration['attributes']['insecure']))
-
-      if cookie && !cookie.empty?
-        load_from_cookie(cookie, valid_signature_digest)
-      elsif @directory.local_authority_name
-        create_from_scratch
-      else
-        create_invalid
-      end
-    end
-
-    # @return [true,false] true if this session was created in-process, false if it was initialized from a cookie
-    def new_record?
-      @cookie.nil?
-    end
-
-    # Determine whether the session is valid. This method simply delegates to the
-    # directory associated with this session.
-    #
-    # === Return
-    # valid(true|false):: True if the session is valid, false otherwise
-    def valid?
-      @directory.valid_session?(@id, @expired_at)
-    end
-
     # Serialize the session to a form suitable for use with HTTP cookies. If any
     # secure attributes have changed since the session was instantiated, compute
     # a fresh RSA signature.
     #
     # === Return
-    # cookie(String):: The B64cookie-encoded Zlib-compressed JSON-serialized global session hash
+    # cookie(String):: Base64Cookie-encoded, Zlib-compressed JSON-serialized global session
     def to_s
       if @cookie && !@dirty_insecure && !@dirty_secure
         #use cached cookie if nothing has changed
@@ -115,31 +85,6 @@ module GlobalSession::Session
       zbin = Zlib::Deflate.deflate(json, Zlib::BEST_COMPRESSION)
       return GlobalSession::Encoding::Base64Cookie.dump(zbin)
     end
-
-    # Determine whether the global session schema allows a given key to be placed
-    # in the global session.
-    #
-    # === Parameters
-    # key(String):: The name of the key
-    #
-    # === Return
-    # supported(true|false):: Whether the specified key is supported
-    def supports_key?(key)
-      @schema_signed.include?(key) || @schema_insecure.include?(key)
-    end
-
-    # Determine whether this session contains a value with the specified key.
-    #
-    # === Parameters
-    # key(String):: The name of the key
-    #
-    # === Return
-    # contained(true|false):: Whether the session currently has a value for the specified key.
-    def has_key?(key)
-      @signed.has_key?(key) || @insecure.has_key?(key)
-    end
-
-    alias :key? :has_key?
 
     # Return the keys that are currently present in the global session.
     #
@@ -269,7 +214,7 @@ module GlobalSession::Session
       return output
     end
 
-    def load_from_cookie(cookie, valid_signature_digest) # :nodoc:
+    def load_from_cookie(cookie) # :nodoc:
       begin
         zbin = GlobalSession::Encoding::Base64Cookie.load(cookie)
         json = Zlib::Inflate.inflate(zbin)
@@ -288,15 +233,13 @@ module GlobalSession::Session
       insecure = hash.delete('dx')
       signature = hash.delete('s')
 
-      unless valid_signature_digest == digest(signature)
-        #Check signature
-        expected = canonical_digest(hash)
-        signer = @directory.authorities[authority]
-        raise SecurityError, "Unknown signing authority #{authority}" unless signer
-        got = signer.public_decrypt(GlobalSession::Encoding::Base64Cookie.load(signature))
-        unless (got == expected)
-          raise SecurityError, "Signature mismatch on global session cookie; tampering suspected"
-        end
+      #Check signature
+      expected = canonical_digest(hash)
+      signer = @directory.authorities[authority]
+      raise SecurityError, "Unknown signing authority #{authority}" unless signer
+      got = signer.public_decrypt(GlobalSession::Encoding::Base64Cookie.load(signature))
+      unless (got == expected)
+        raise SecurityError, "Signature mismatch on global session cookie; tampering suspected"
       end
 
       #Check trust in signing authority
