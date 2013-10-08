@@ -89,7 +89,7 @@ module GlobalSession
 
         begin
           err = nil
-          read_cookie(env)
+          read_authorization_header(env) || read_cookie(env) || create_session(env)
         rescue Exception => read_err
           err = read_err
 
@@ -117,20 +117,65 @@ module GlobalSession
         end
       end
 
-      protected
-
-      # Read a cookie from the Rack environment.
+      # Read a global session from the HTTP Authorization header, if present. If an authorization
+      # header was found, also disable global session cookie update and renewal by setting the
+      # corresponding keys of the Rack environment.
       #
       # === Parameters
       # env(Hash): Rack environment.
+      #
+      # === Return
+      # result(true,false):: Returns true if the environment was populated, false otherwise
+      def read_authorization_header(env)
+        if env.has_key? 'X-HTTP_AUTHORIZATION'
+          # RFC2617 style (preferred by OAuth 2.0 spec)
+          header_data = env['X-HTTP_AUTHORIZATION'].to_s.split
+        elsif env.has_key? 'HTTP_AUTHORIZATION'
+          # Fallback style (generally when no load balancer is present, e.g. dev/test)
+          header_data = env['HTTP_AUTHORIZATION'].to_s.split
+        else
+          header_data = nil
+        end
+
+        if header_data && header_data.size == 2 && header_data.first.downcase == 'bearer'
+          env['global_session.req.renew'] = false
+          env['global_session.req.update'] = false
+          env['global_session'] = @directory.load_session(header_data.last)
+          true
+        else
+          false
+        end
+      end
+
+      # Read a global session from HTTP cookies, if present.
+      #
+      # === Parameters
+      # env(Hash): Rack environment.
+      #
+      # === Return
+      # result(true,false):: Returns true if the environment was populated, false otherwise
       def read_cookie(env)
         if @cookie_retrieval && (cookie = @cookie_retrieval.call(env))
           env['global_session'] = @directory.load_session(cookie)
+          true
         elsif env['rack.cookies'].has_key?(@cookie_name)
           env['global_session'] = @directory.load_session(env['rack.cookies'][@cookie_name])
+          true
         else
-          env['global_session'] = @directory.create_session
+          false
         end
+      end
+
+      # Ensure that the Rack environment contains a global session object; create a session
+      # if necessary.
+      #
+      # === Parameters
+      # env(Hash): Rack environment.
+      #
+      # === Return
+      # true:: always returns true
+      def create_session(env)
+        env['global_session'] ||= @directory.create_session
 
         true
       end
