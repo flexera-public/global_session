@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{global_session}
-  s.version = "3.0.0"
+  s.version = "3.0.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Tony Spataro"]
-  s.date = %q{2013-09-23}
+  s.date = %q{2013-10-11}
   s.description = %q{This Rack middleware allows several web apps in an authentication domain to share session state, facilitating single sign-on in a distributed web app. It only provides session sharing and does not concern itself with authentication or replication of the user database.}
   s.email = %q{support@rightscale.com}
   s.extra_rdoc_files = [
@@ -57,7 +57,7 @@ Gem::Specification.new do |s|
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
       s.add_runtime_dependency(%q<json>, ["~> 1.4"])
       s.add_runtime_dependency(%q<rack-contrib>, ["~> 1.0"])
-      s.add_runtime_dependency(%q<right_support>, [">= 2.8.1", "< 3.0"])
+      s.add_runtime_dependency(%q<right_support>, [">= 2.8.2", "< 3.0"])
       s.add_runtime_dependency(%q<simple_uuid>, [">= 0.2.0"])
       s.add_development_dependency(%q<cucumber>, ["~> 1.0"])
       s.add_development_dependency(%q<debugger>, ["~> 1.5"])
@@ -72,7 +72,7 @@ Gem::Specification.new do |s|
     else
       s.add_dependency(%q<json>, ["~> 1.4"])
       s.add_dependency(%q<rack-contrib>, ["~> 1.0"])
-      s.add_dependency(%q<right_support>, [">= 2.8.1", "< 3.0"])
+      s.add_dependency(%q<right_support>, [">= 2.8.2", "< 3.0"])
       s.add_dependency(%q<simple_uuid>, [">= 0.2.0"])
       s.add_dependency(%q<cucumber>, ["~> 1.0"])
       s.add_dependency(%q<debugger>, ["~> 1.5"])
@@ -88,7 +88,7 @@ Gem::Specification.new do |s|
   else
     s.add_dependency(%q<json>, ["~> 1.4"])
     s.add_dependency(%q<rack-contrib>, ["~> 1.0"])
-    s.add_dependency(%q<right_support>, [">= 2.8.1", "< 3.0"])
+    s.add_dependency(%q<right_support>, [">= 2.8.2", "< 3.0"])
     s.add_dependency(%q<simple_uuid>, [">= 0.2.0"])
     s.add_dependency(%q<cucumber>, ["~> 1.0"])
     s.add_dependency(%q<debugger>, ["~> 1.5"])

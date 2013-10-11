@@ -263,28 +263,76 @@ describe GlobalSession::Rack::Middleware do
   context :read_cookie do
     context 'with no cookie' do
       it 'returns false' do
-        @app.read_cookie(@env).should == false
+        @app.read_cookie(@env).should be_false
         @env.should_not have_key('global_session')
       end
     end
 
-    context 'with a valid cookie' do
+    context 'with a cookie' do
       before(:each) do
         @original_session = GlobalSession::Session.new(@directory)
         @cookie = @original_session.to_s
-        @cookie_jar.should_receive(:has_key?).with('global_session_cookie').and_return(true)
-        @cookie_jar.should_receive(:[]).with('global_session_cookie').and_return(@cookie)
       end
 
-      it 'populates the env with a session object' do
+      it 'parses valid cookies and populates the env' do
+        @cookie_jar.should_receive(:has_key?).with('global_session_cookie').and_return(true)
+        @cookie_jar.should_receive(:[]).with('global_session_cookie').and_return(@cookie)
         @app.read_cookie(@env).should == true
         @env.should have_key('global_session')
         @env['global_session'].to_s.should == @cookie
+      end
+
+      it 'raises on malformed cookies' do
+        @cookie_jar.should_receive(:has_key?).with('global_session_cookie').and_return(true)
+        @cookie_jar.should_receive(:[]).with('global_session_cookie').and_return('mwahahaha')
+        expect {
+          @app.read_cookie(@env)
+        }.to raise_error(GlobalSession::MalformedCookie)
       end
     end
   end
 
   context :read_authorization_header do
-    it 'should have tests'
+    context 'with no header' do
+      it 'returns false' do
+        @app.read_authorization_header(@env).should be_false
+        @env.should_not have_key('global_session')
+      end
+    end
+
+    context 'with an authorization header' do
+      before(:each) do
+        @original_session = GlobalSession::Session.new(@directory)
+        @cookie = @original_session.to_s
+      end
+
+      it 'parses X-HTTP-Authorization and populates the env' do
+        @env['X-HTTP_AUTHORIZATION'] = "Bearer #{@cookie}"
+        @app.read_authorization_header(@env).should be_true
+        @env.should have_key('global_session')
+        @env['global_session'].to_s.should == @cookie
+      end
+
+      it 'parses HTTP-Authorization and populates the env' do
+        @env['HTTP_AUTHORIZATION'] = "Bearer #{@cookie}"
+        @app.read_authorization_header(@env).should be_true
+        @env.should have_key('global_session')
+        @env['global_session'].to_s.should == @cookie
+      end
+
+      it 'ignores non-bearer headers' do
+        @env['HTTP_AUTHORIZATION'] = 'Banana 12345'
+        @app.read_authorization_header(@env).should be_false
+        @env.should_not have_key('global_session')
+      end
+
+      it 'raises on malformed bearer headers' do
+        @env['HTTP_AUTHORIZATION'] = 'Bearer abcde'
+        expect {
+          @app.read_authorization_header(@env)
+        }.to raise_error(GlobalSession::MalformedCookie)
+        @env.should_not have_key('global_session')
+      end
+    end
   end
 end
