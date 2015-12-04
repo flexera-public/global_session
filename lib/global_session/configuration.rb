@@ -20,6 +20,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 require 'yaml'
+require 'erb'
 
 module GlobalSession
   # Central point of access for GlobalSession configuration information. This is
@@ -97,7 +98,8 @@ module GlobalSession
       if config.is_a?(Hash)
         @config = config
       elsif File.file?(config)
-        data = YAML.load(File.read(config))
+        yaml = ERB.new(File.read(config)).result
+        data = YAML.load(yaml)
         unless data.is_a?(Hash)
           raise TypeError, "Configuration file #{File.basename(config)} must contain a hash as its top-level element"
         end
