@@ -1,7 +1,6 @@
 # -*-ruby-*-
 require 'rubygems'
 require 'rake'
-require 'right_develop'
 require 'right_support'
 require 'spec/rake/spectask'
 require 'rubygems/package_task'
@@ -44,5 +43,3 @@ if require_succeeds? 'jeweler'
 end
 
 CLEAN.include('pkg')
-
-RightDevelop::CI::RakeTask.new

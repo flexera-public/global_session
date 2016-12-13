@@ -11,7 +11,6 @@ group :test do
   gem 'httpclient'
   gem 'msgpack', '~> 0.4'
   gem 'rake', '~> 0.8'
-  gem 'right_develop', '~> 3.1'
   gem 'rspec', '~> 1.3'
 end
 
