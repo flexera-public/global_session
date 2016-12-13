@@ -64,11 +64,21 @@ module GlobalSession
 
     # Factory method to generate a new keypair for use with GlobalSession.
     #
+    # @param [Integer,String] parameter keylength in bits (for RSA/DSA) or curve name (for EC)
     # @raise [ArgumentError] if cryptosystem is unknown to OpenSSL
     # @return [OpenSSL::PKey::PKey] a public/private keypair
-    def self.create_keypair(cryptosystem=:RSA, keysize=1024)
+    def self.create_keypair(cryptosystem=:EC, parameter=nil)
       factory = OpenSSL::PKey.const_get(cryptosystem)
-      factory.generate( 1024 )
+      if factory.respond_to?(:generate)
+        parameter ||= 2048
+        # parameter-free cryptosystem e.g. RSA, DSA
+        factory.generate( parameter )
+      else
+        parameter ||= 'secp256k1'
+        # parameterized family of cryptosystems (e.g. EC)
+        alg = factory.new(parameter)
+        alg.generate_key
+      end
     rescue NameError => e
       raise ArgumentError, e.message
     end
