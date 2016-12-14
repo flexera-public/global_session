@@ -7,8 +7,8 @@ shared_examples_for 'all subclasses of Session::Abstract' do
 
   before(:all) do
     @key_factory = KeyFactory.new
-    @key_factory.create('authority1', true)
-    @key_factory.create('authority2', false)
+    @key_factory.create('authority1', true, parameter:key_generation_parameter)
+    @key_factory.create('authority2', false, parameter:key_generation_parameter)
   end
 
   after(:all) do
@@ -31,32 +31,32 @@ shared_examples_for 'all subclasses of Session::Abstract' do
       mock_config('test/trust', ['authority1'])
       mock_config('test/authority', 'authority1')
       @directory        = GlobalSession::Directory.new(mock_config, @key_factory.dir)
-      @original_session = described_class.new(@directory)
+      @original_session = subject.new(@directory)
       @cookie           = @original_session.to_s
     end
 
     context 'when everything is copacetic' do
       it 'succeeds' do
-        described_class.new(@directory, @cookie).should be_a(GlobalSession::Session::Abstract)
+        subject.new(@directory, @cookie).should be_a(GlobalSession::Session::Abstract)
       end
     end
 
     context 'when an insecure attribute changes' do
       before do
-        @cookie = tamper_with_insecure_attributes(described_class, @cookie, {'favorite_color' => 'blue'})
+        @cookie = tamper_with_insecure_attributes(subject, @cookie, {'favorite_color' => 'blue'})
       end
       it 'succeeds' do
-        described_class.new(@directory, @cookie).should be_a(GlobalSession::Session::Abstract)
+        subject.new(@directory, @cookie).should be_a(GlobalSession::Session::Abstract)
       end
     end
 
     context 'when a secure attribute is tampered with' do
       before do
-        @cookie = tamper_with_signed_attributes(described_class, @cookie, {'evil_haxor' => 'mwahaha'})
+        @cookie = tamper_with_signed_attributes(subject, @cookie, {'evil_haxor' => 'mwahaha'})
       end
       it 'raises SecurityError' do
         lambda {
-          described_class.new(@directory, @cookie)
+          subject.new(@directory, @cookie)
         }.should raise_error(SecurityError)
       end
     end
@@ -66,13 +66,13 @@ shared_examples_for 'all subclasses of Session::Abstract' do
         mock_config('test/trust', ['authority1'])
         mock_config('test/authority', 'authority1')
         @directory2 = GlobalSession::Directory.new(mock_config, @key_factory.dir)
-        @cookie = described_class.new(@directory2).to_s
+        @cookie = subject.new(@directory2).to_s
         mock_config('test/trust', ['authority2'])
         mock_config('test/authority', nil)
       end
       it 'raises SecurityError' do
         lambda {
-          described_class.new(@directory, @cookie)
+          subject.new(@directory, @cookie)
         }.should raise_error(SecurityError)
       end
     end
@@ -84,14 +84,14 @@ shared_examples_for 'all subclasses of Session::Abstract' do
       end
       it 'raises ExpiredSession' do
         lambda {
-          described_class.new(@directory, @cookie)
+          subject.new(@directory, @cookie)
         }.should raise_error(GlobalSession::ExpiredSession)
       end
     end
 
     context 'when an empty cookie is supplied' do
       it 'creates a new valid session' do
-        described_class.new(@directory, '').valid?.should be_true
+        subject.new(@directory, '').valid?.should be_true
       end
 
       context 'and there is no local authority' do
@@ -101,7 +101,7 @@ shared_examples_for 'all subclasses of Session::Abstract' do
         end
 
         it 'creates a new invalid session' do
-          described_class.new(@directory, '').valid?.should be_false
+          subject.new(@directory, '').valid?.should be_false
         end
       end
     end
@@ -112,7 +112,7 @@ shared_examples_for 'all subclasses of Session::Abstract' do
       bad_cookies.each do |cookie|
         it 'copes' do
           lambda {
-            described_class.new(@directory, cookie)
+            subject.new(@directory, cookie)
           }.should raise_error(GlobalSession::MalformedCookie)
         end
       end
@@ -124,7 +124,7 @@ shared_examples_for 'all subclasses of Session::Abstract' do
       mock_config('test/trust', ['authority1'])
       mock_config('test/authority', 'authority1')
       @directory = GlobalSession::Directory.new(mock_config, @key_factory.dir)
-      @session   = described_class.new(@directory)
+      @session   = subject.new(@directory)
     end
 
     context :renew! do
@@ -151,7 +151,7 @@ shared_examples_for 'all subclasses of Session::Abstract' do
       end
 
       it 'returns false when the session was loaded from a cookie' do
-        loaded_session = described_class.new(@directory, @session.to_s)
+        loaded_session = subject.new(@directory, @session.to_s)
         loaded_session.new_record?.should be_false
       end
     end
@@ -161,7 +161,7 @@ shared_examples_for 'all subclasses of Session::Abstract' do
 
       before do
         # force signature + reload + non-new-record
-        @session = described_class.new(@directory, cookie)
+        @session = subject.new(@directory, cookie)
       end
 
       context :dirty? do

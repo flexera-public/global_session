@@ -2,7 +2,9 @@ source 'https://rubygems.org'
 
 gem 'json', '~> 1.4'
 gem 'rack-contrib', '~> 1.0'
-gem 'right_support', ['>= 2.8.2', '< 4.0']
+gem 'right_support', ['>= 2.8.2', '< 4.0'],
+  git: 'https://github.com/rightscale/right_support.git',
+  branch: 'elliptic_curve_crypto'
 gem 'simple_uuid', '>= 0.2.0'
 
 group :test do

@@ -1,7 +1,10 @@
 require 'spec_helper'
 require File.expand_path('../shared_examples', __FILE__)
 
-describe GlobalSession::Session::V3 do
+describe 'GlobalSession::Session::V3 with RSA crypto' do
+  subject { GlobalSession::Session::V3 }
+
+  let(:key_generation_parameter) { 1024 }
   let(:signature_method) { :sign }
   it_should_behave_like 'all subclasses of Session::Abstract'
 
@@ -11,7 +14,7 @@ describe GlobalSession::Session::V3 do
     mock_config('common/attributes/signed', ['user'])
     mock_config('common/attributes/insecure', ['favorite_color'])
     @directory        = GlobalSession::Directory.new(mock_config, @key_factory.dir)
-    @original_session = described_class.new(@directory)
+    @original_session = subject.new(@directory)
     @cookie           = @original_session.to_s
   end
 
@@ -20,7 +23,7 @@ describe GlobalSession::Session::V3 do
       size  = 0
       count = 0
       100.times do
-        session = described_class.new(@directory)
+        session = subject.new(@directory)
         size += session.to_s.size
         count += 1
       end
