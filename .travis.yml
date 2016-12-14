@@ -9,5 +9,4 @@ before_install:
   - sudo apt-get install -y libgmp3-dev
 script:
   - bundle exec rake spec
-  # - bundle exec cucumber
 bundler_args: --without development

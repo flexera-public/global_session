@@ -3,7 +3,6 @@ source 'https://rubygems.org'
 gemspec
 
 group :test do
-  gem 'cucumber'
   gem 'flexmock'
   gem 'httpclient'
   gem 'jwt'
