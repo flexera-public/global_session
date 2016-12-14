@@ -95,19 +95,19 @@ describe GlobalSession::Rack::Middleware do
 
     it 'uses a GlobalSession::Directory by default' do
       app = GlobalSession::Rack::Middleware.new(@inner_app, @config, @key_factory.dir)
-      app.instance_variable_get(:@directory).kind_of?(GlobalSession::Directory).should be_true
+      expect(app.instance_variable_get(:@directory).kind_of?(GlobalSession::Directory)).to eq(true)
     end
 
     it 'uses a custom directory class (classic notation)' do
       mock_config('common/directory', 'Wacky::WildDirectory')
       app = GlobalSession::Rack::Middleware.new(@inner_app, @config, @key_factory.dir)
-      app.instance_variable_get(:@directory).kind_of?(Wacky::WildDirectory).should be_true
+      expect(app.instance_variable_get(:@directory).kind_of?(Wacky::WildDirectory)).to eq(true)
     end
 
     it 'uses a custom directory class (modern notation)' do
       mock_config('common/directory/class', 'Wacky::WildDirectory')
       app = GlobalSession::Rack::Middleware.new(@inner_app, @config, @key_factory.dir)
-      app.instance_variable_get(:@directory).kind_of?(Wacky::WildDirectory).should be_true
+      expect(app.instance_variable_get(:@directory).kind_of?(Wacky::WildDirectory)).to eq(true)
     end
   end
 
@@ -165,17 +165,17 @@ describe GlobalSession::Rack::Middleware do
       it 'swallows client errors' do
         @directory.load_error = GlobalSession::ClientError.new
         @app.call(@env)
-        @env.should have_key('global_session')
-        @env.should have_key('global_session.error')
-        @env['global_session.error'].should be_a(GlobalSession::ClientError)
+        expect(@env).to have_key('global_session')
+        expect(@env).to have_key('global_session.error')
+        expect(@env['global_session.error']).to be_a(GlobalSession::ClientError)
       end
 
       it 'swallows configuration errors' do
         @directory.load_error = GlobalSession::ConfigurationError.new
         @app.call(@env)
-        @env.should have_key('global_session')
-        @env.should have_key('global_session.error')
-        @env['global_session.error'].should be_a(GlobalSession::ConfigurationError)
+        expect(@env).to have_key('global_session')
+        expect(@env).to have_key('global_session.error')
+        expect(@env['global_session.error']).to be_a(GlobalSession::ConfigurationError)
       end
 
       it 'raises other errors' do
@@ -189,9 +189,9 @@ describe GlobalSession::Rack::Middleware do
         @env["rack.logger"] = FakeLogger.new
         flexmock(@env["rack.logger"]).should_receive(:error).with("GlobalSession::ExpiredSession while reading session cookie: GlobalSession::ExpiredSession")
         @app.call(@env)
-        @env.should have_key('global_session')
-        @env.should have_key('global_session.error')
-        @env['global_session.error'].should be_a(GlobalSession::ExpiredSession)
+        expect(@env).to have_key('global_session')
+        expect(@env).to have_key('global_session.error')
+        expect(@env['global_session.error']).to be_a(GlobalSession::ExpiredSession)
       end
     end
   end
@@ -248,7 +248,7 @@ describe GlobalSession::Rack::Middleware do
                                             FlexMock.on { |x| x[:value] != nil && x[:domain] == 'foobar.com' })
       @app.wipe_cookie(@env)
     end
-    
+
     context 'when the local system is not an authority' do
       before(:each) do
         flexmock(@directory.keystore).should_receive(:private_key_name).and_return(nil)
@@ -360,8 +360,8 @@ describe GlobalSession::Rack::Middleware do
   context :read_cookie do
     context 'with no cookie' do
       it 'returns false' do
-        @app.read_cookie(@env).should be_false
-        @env.should_not have_key('global_session')
+        expect(@app.read_cookie(@env)).to eq(false)
+        expect(@env).not_to have_key('global_session')
       end
     end
 
@@ -377,9 +377,9 @@ describe GlobalSession::Rack::Middleware do
 
       it 'parses valid cookies and populates the env' do
         @cookie_jar.should_receive(:[]).with('global_session_cookie').and_return(cookie)
-        @app.read_cookie(@env).should == true
-        @env.should have_key('global_session')
-        @env['global_session'].to_s.should == cookie
+        expect(@app.read_cookie(@env)).to eq(true)
+        expect(@env).to have_key('global_session')
+        expect(@env['global_session'].to_s).to eq(cookie)
       end
 
       it 'raises on malformed cookies' do
@@ -391,9 +391,9 @@ describe GlobalSession::Rack::Middleware do
 
       it 'copes with URL-encoded cookies' do
         @cookie_jar.should_receive(:[]).with('global_session_cookie').and_return(encoded_cookie)
-        @app.read_cookie(@env).should == true
-        @env.should have_key('global_session')
-        @env['global_session'].to_s.should == cookie
+        expect(@app.read_cookie(@env)).to eq(true)
+        expect(@env).to have_key('global_session')
+        expect(@env['global_session'].to_s).to eq(cookie)
       end
     end
   end
@@ -401,8 +401,8 @@ describe GlobalSession::Rack::Middleware do
   context :read_authorization_header do
     context 'with no header' do
       it 'returns false' do
-        @app.read_authorization_header(@env).should be_false
-        @env.should_not have_key('global_session')
+        expect(@app.read_authorization_header(@env)).to eq(false)
+        expect(@env).not_to have_key('global_session')
       end
     end
 
@@ -414,22 +414,22 @@ describe GlobalSession::Rack::Middleware do
 
       it 'parses X-HTTP-Authorization and populates the env' do
         @env['X-HTTP_AUTHORIZATION'] = "Bearer #{@cookie}"
-        @app.read_authorization_header(@env).should be_true
-        @env.should have_key('global_session')
-        @env['global_session'].to_s.should == @cookie
+        expect(@app.read_authorization_header(@env)).to eq(true)
+        expect(@env).to have_key('global_session')
+        expect(@env['global_session'].to_s).to eq(@cookie)
       end
 
       it 'parses HTTP-Authorization and populates the env' do
         @env['HTTP_AUTHORIZATION'] = "Bearer #{@cookie}"
-        @app.read_authorization_header(@env).should be_true
-        @env.should have_key('global_session')
-        @env['global_session'].to_s.should == @cookie
+        expect(@app.read_authorization_header(@env)).to eq(true)
+        expect(@env).to have_key('global_session')
+        expect(@env['global_session'].to_s).to eq(@cookie)
       end
 
       it 'ignores non-bearer headers' do
         @env['HTTP_AUTHORIZATION'] = 'Banana 12345'
-        @app.read_authorization_header(@env).should be_false
-        @env.should_not have_key('global_session')
+        expect(@app.read_authorization_header(@env)).to eq(false)
+        expect(@env).not_to have_key('global_session')
       end
 
       it 'raises on malformed bearer headers' do
@@ -437,7 +437,7 @@ describe GlobalSession::Rack::Middleware do
         expect {
           @app.read_authorization_header(@env)
         }.to raise_error(GlobalSession::MalformedCookie)
-        @env.should_not have_key('global_session')
+        expect(@env).not_to have_key('global_session')
       end
     end
   end

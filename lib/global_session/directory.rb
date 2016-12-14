@@ -28,7 +28,7 @@ module GlobalSession
   # The default implementation is simplistic, but should be suitable for most applications.
   # Directory is designed to be specialized via subclassing. To override the behavior to
   # suit your needs, simply create a subclass of Directory and add a configuration file
-  # setting to specify the class name of your implementation:  
+  # setting to specify the class name of your implementation:
   #
   #     common:
   #       directory:
@@ -122,7 +122,7 @@ module GlobalSession
         when 1
           Session::V1.new(self, cookie)
         else
-          raise ArgumentError, "Unknown value #{forced_version} for configuration.cookie.version" 
+          raise ArgumentError, "Unknown value #{forced_version} for configuration.cookie.version"
         end
       else
         warn "GlobalSession::Directory#create_session with an existing session is DEPRECATED -- use #load_session instead"
@@ -170,7 +170,7 @@ module GlobalSession
     def local_authority_name
       @keystore.private_key_name
     end
-    
+
     # Determine whether this system trusts a particular named authority based on
     # the settings specified in Configuration and/or the presence of public key
     # files on disk.

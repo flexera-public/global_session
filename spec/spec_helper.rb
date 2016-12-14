@@ -1,50 +1,56 @@
-require 'rubygems'
-$:.unshift(File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib')))
-require 'bundler/setup'
-require 'spec'
 require 'tempfile'
+
+require 'rubygems'
+require 'bundler/setup'
 require 'flexmock'
+require 'rspec'
+
 require 'global_session'
 
 begin
-  if RUBY_VERSION =~ /^1\.8/
-    require 'ruby-debug'
-  else
-    require 'pry'
-    require 'pry-byebug'
-  end
+  require 'pry'
 rescue LoadError
   # no-op; debugger is purposefully omitted from some environments
 end
 
-Spec::Runner.configure do |config|
+RSpec.configure do |config|
   config.mock_with :flexmock
 end
 
 class KeyFactory
+  attr_reader :dir
+
   def initialize()
-    @key_factory = File.join( Dir.tmpdir, "#{Process.pid}_#{rand(2**32)}" )
-    FileUtils.mkdir_p(@key_factory)
+    @dir = File.join( Dir.tmpdir, "#{Process.pid}_#{rand(2**32)}" )
+    FileUtils.mkdir_p(@dir)
   end
 
-  def dir
-    @key_factory
-  end
+  def create(name, write_private, parameter:1024)
+    case parameter
+    when Integer
+      new_key = GlobalSession::Keystore.create_keypair(:RSA, parameter)
+      new_public  = new_key.public_key.to_pem
+      new_private = new_key.to_pem
+    when String
+      new_key = GlobalSession::Keystore.create_keypair(:EC, parameter)
+      new_public = OpenSSL::PKey::EC.new(new_key)
+      new_public.private_key = nil
+      new_public  = new_public.to_pem
+      new_private = new_key.to_pem
+    else
+      raise ArgumentError, "Don't know what to do with parameter"
+    end
 
-  def create(name, write_private)
-    new_key     = OpenSSL::PKey::RSA.generate(1024)
-    new_public  = new_key.public_key.to_pem
-    new_private = new_key.to_pem
-    File.open(File.join(@key_factory, "#{name}.pub"), 'w') { |f| f.puts new_public }
-    File.open(File.join(@key_factory, "#{name}.key"), 'w') { |f| f.puts new_key } if write_private
+    File.open(File.join(@dir, "#{name}.pub"), 'w') { |f| f.puts new_public }
+    File.open(File.join(@dir, "#{name}.key"), 'w') { |f| f.puts new_private } if write_private
   end
 
   def reset()
-    FileUtils.rm_rf(File.join(@key_factory, '*'))
+    FileUtils.rm_rf(File.join(@dir, '*'))
   end
 
   def destroy()
-    FileUtils.rm_rf(@key_factory)
+    FileUtils.rm_rf(@dir)
   end
 end
 

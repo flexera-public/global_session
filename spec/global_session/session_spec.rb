@@ -32,14 +32,14 @@ describe GlobalSession::Session do
       context '.new' do
         it 'creates a compatible session object' do
           session = GlobalSession::Session.new(@directory, cookie)
-          session.should be_a(klass)
+          expect(session).to be_a(klass)
         end
       end
 
       context '.decode_cookie' do
         it 'returns useful debug info' do
           h = klass.decode_cookie(cookie)
-          h.should respond_to(:each)
+          expect(h).to respond_to(:each)
         end
       end
 
@@ -47,11 +47,11 @@ describe GlobalSession::Session do
         let(:session) { GlobalSession::Session.new(@directory, cookie) }
 
         it 'returns false when loaded from a cookie' do
-          session.new_record?.should be_false
+          expect(session.new_record?).to eq(false)
         end
 
         it 'returns true when created from scratch' do
-          klass.new(@directory).new_record?.should be_true
+          expect(klass.new(@directory).new_record?).to eq(true)
         end
       end
 
@@ -59,17 +59,17 @@ describe GlobalSession::Session do
         let(:session) { GlobalSession::Session.new(@directory, cookie) }
 
         it 'returns false when nothing changes' do
-          session.dirty?.should be_false
+          expect(session.dirty?).to eq(false)
         end
 
         it 'detects timestamp changes' do
           session.renew!
-          session.dirty?.should be_true
+          expect(session.dirty?).to eq(true)
         end
 
         it 'detects data changes' do
           session['user'] = 'your momma'
-          session.dirty?.should be_true
+          expect(session.dirty?).to eq(true)
         end
       end
 
@@ -79,12 +79,12 @@ describe GlobalSession::Session do
 
         it 'recomputes signature when secure attributes change' do
           session['user'] = 123456
-          reloaded_session['user'].should == 123456
+          expect(reloaded_session['user']).to eq(123456)
         end
 
         it 'recomputes signature when expired_at changes' do
           session.renew!
-          reloaded_session.expired_at.should be_close(session.expired_at, 1)
+          expect(reloaded_session.expired_at).to be_within(1).of(session.expired_at)
         end
       end
     end

@@ -39,12 +39,13 @@ describe GlobalSession::Session::Abstract do
         end
 
         it 'includes metadata' do
-          @hash[:metadata][:id].should == @session.id
-          @hash[:metadata][:created_at].should == @session.created_at
-          @hash[:metadata][:expired_at].should == @session.expired_at
-          @hash[:metadata][:authority].should == @session.authority
-          @hash[:signed].each_pair { |k, v| @session[k].should == v }
-          @hash[:insecure].each_pair { |k, v| @session[k].should == v }
+          expect(@hash[:metadata][:id]).to eq(@session.id)
+          expect(@hash[:metadata][:created_at]).to eq(@session.created_at)
+          expect(@hash[:metadata][:expired_at]).to eq(@session.expired_at)
+          expect(@hash[:metadata][:authority]).to eq(@session.authority)
+
+          @hash[:signed].each_pair { |k, v| expect(@session[k]).to eq(v) }
+          @hash[:insecure].each_pair { |k, v| expect(@session[k]).to eq(v) }
         end
       end
     end

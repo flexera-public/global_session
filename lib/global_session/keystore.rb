@@ -64,11 +64,23 @@ module GlobalSession
 
     # Factory method to generate a new keypair for use with GlobalSession.
     #
+    # @param [Integer,String] parameter keylength in bits (for RSA/DSA) or curve name (for EC)
     # @raise [ArgumentError] if cryptosystem is unknown to OpenSSL
     # @return [OpenSSL::PKey::PKey] a public/private keypair
-    def self.create_keypair(cryptosystem=:RSA, keysize=1024)
+    def self.create_keypair(cryptosystem=:RSA, parameter=nil)
       factory = OpenSSL::PKey.const_get(cryptosystem)
-      factory.generate( 1024 )
+      if factory.respond_to?(:generate)
+        # parameter-free cryptosystem e.g. RSA, DSA. Default key length 1024,
+        # which is really too small, but whose signatures are quite large.
+        parameter ||= 1024
+        factory.generate( parameter )
+      else
+        # parameterized family of cryptosystems (e.g. EC). Default curve is
+        # compatible with JSON Web Signature (JWS) ES256 algorithm.
+        parameter ||= 'prime256v1'
+        alg = factory.new(parameter)
+        alg.generate_key
+      end
     rescue NameError => e
       raise ArgumentError, e.message
     end
@@ -106,9 +118,11 @@ module GlobalSession
         end
       elsif File.file?(path)
         name = File.basename(path, '.*')
-        key  = OpenSSL::PKey::RSA.new(File.read(path))
+        pem  = File.read(path)
+        key  = OpenSSL::PKey.read(pem)
+
         # ignore private keys (which legacy config allowed to coexist with public keys)
-        unless key.private?
+        unless (key.private? rescue nil) || (key.private_key? rescue nil)
           if @public_keys.has_key?(name)
             raise ConfigurationError, "Duplicate public key for authority: #{name}"
           else
@@ -135,8 +149,10 @@ module GlobalSession
       if File.file?(path)
         if @private_key.nil?
           name        = File.basename(path, '.*')
-          private_key = OpenSSL::PKey::RSA.new(File.read(path))
-          raise ConfigurationError, "Expected #{key_file} to contain an RSA private key" unless private_key.private?
+          pem         = File.read(path)
+          private_key = OpenSSL::PKey.read(pem)
+
+          raise ConfigurationError, "Expected #{key_file} to contain an RSA private key" unless (private_key.private? rescue nil) || (private_key.private_key? rescue nil)
           @private_key      = private_key
           @private_key_name = name
         else

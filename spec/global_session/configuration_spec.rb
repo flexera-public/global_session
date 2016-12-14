@@ -9,14 +9,14 @@ describe GlobalSession::Configuration do
 
   context '#initialize' do
     it 'accepts a Hash' do
-      described_class.new(config_hash, 'test').should be_a(described_class)
+      expect(described_class.new(config_hash, 'test')).to be_a(described_class)
     end
 
     it 'accepts a YAML file location' do
       f = Tempfile.new('global_session-spec')
       f.write(YAML.dump(config_hash))
       f.close
-      described_class.new(f.path, 'test').should be_a(described_class)
+      expect(described_class.new(f.path, 'test')).to be_a(described_class)
       f.unlink
     end
 
