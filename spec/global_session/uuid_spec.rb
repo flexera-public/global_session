@@ -40,7 +40,7 @@ describe 'Global Session IDs' do
       end
 
       # Less than half of the character positions should be predictable
-      (predictable_pos.to_f / total_pos.to_f).should <= 0.5
+      expect((predictable_pos.to_f / total_pos.to_f)).to be <= 0.5
     end
   end
 end

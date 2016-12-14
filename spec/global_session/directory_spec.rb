@@ -34,35 +34,27 @@ describe GlobalSession::Directory do
       context 'and a keystore with no private keys' do
         it 'raises ConfigurationError' do
           @key_factory.create(@authority_name, false)
-          lambda {
+          expect {
             GlobalSession::Directory.new(mock_config, @key_factory.dir)
-          }.should raise_error(GlobalSession::ConfigurationError)
+          }.to raise_error(GlobalSession::ConfigurationError)
         end
       end
 
       context 'and a keystore with an incorrectly-named private key' do
         it 'raises ConfigurationError' do
           @key_factory.create('wrong_name', true)
-          lambda {
+          expect {
             $tony = true
             GlobalSession::Directory.new(mock_config, @key_factory.dir)
-          }.should raise_error(GlobalSession::ConfigurationError)
+          }.to raise_error(GlobalSession::ConfigurationError)
         end
       end
 
       context 'and a keystore with a correctly-named private key' do
         it 'succeeds' do
           @key_factory.create(@authority_name, true)
-          GlobalSession::Directory.should === GlobalSession::Directory.new(mock_config, @key_factory.dir)
-        end
-      end
-    end
-
-    context 'given a configuration that does not specify a local authority' do
-      it 'raises ConfigurationError' do
-        lambda {
           GlobalSession::Directory.new(mock_config, @key_factory.dir)
-        }.should raise_error(GlobalSession::ConfigurationError)
+        end
       end
     end
   end
@@ -77,7 +69,7 @@ describe GlobalSession::Directory do
 
     context 'given a configuration that does not specify cookie/version' do
       it 'creates a V3 session' do
-        @directory.create_session.should be_a(GlobalSession::Session::V3)
+        expect(@directory.create_session).to be_a(GlobalSession::Session::V3)
       end
     end
 
@@ -87,7 +79,7 @@ describe GlobalSession::Directory do
       end
 
       it 'creates a V3 session' do
-        @directory.create_session.should be_a(GlobalSession::Session::V3)
+        expect(@directory.create_session).to be_a(GlobalSession::Session::V3)
       end
     end
 
@@ -97,7 +89,7 @@ describe GlobalSession::Directory do
       end
 
       it 'creates a V2 session' do
-        @directory.create_session.should be_a(GlobalSession::Session::V2)
+        expect(@directory.create_session).to be_a(GlobalSession::Session::V2)
       end
     end
 
@@ -107,7 +99,7 @@ describe GlobalSession::Directory do
       end
 
       it 'creates a V1 session' do
-        @directory.create_session.should be_a(GlobalSession::Session::V1)
+        expect(@directory.create_session).to be_a(GlobalSession::Session::V1)
       end
     end
   end

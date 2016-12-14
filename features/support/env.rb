@@ -25,19 +25,11 @@ require 'rubygems'
 require 'bundler/setup'
 
 begin
-  if RUBY_VERSION =~ /^1\.8/
-    require 'ruby-debug'
-  else
-    require 'pry'
-    require 'pry-byebug'
-  end
+  require 'pry'
+  require 'pry-byebug'
 rescue LoadError
   # no-op; debugger is purposefully omitted from some environments
 end
-
-$: << File.expand_path('../../..', __FILE__)
-# We're using Jeweler, so our Gemfile can't reference our gemspec
-$: << File.expand_path('../../../lib', __FILE__)
 
 require 'tempfile'
 require 'shellwords'

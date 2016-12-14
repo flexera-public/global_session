@@ -1,28 +1,18 @@
 source 'https://rubygems.org'
 
-gem 'json', '~> 1.4'
-gem 'rack-contrib', '~> 1.0'
-gem 'right_support', ['>= 2.8.2', '< 4.0'],
-  git: 'https://github.com/rightscale/right_support.git',
-  branch: 'elliptic_curve_crypto'
-gem 'simple_uuid', '>= 0.2.0'
+gemspec
 
 group :test do
-  gem 'cucumber', '~> 1.0'
-  gem 'flexmock', '~> 0.8'
+  gem 'cucumber'
+  gem 'flexmock'
   gem 'httpclient'
-  gem 'jwt', '~> 1.5'
-  gem 'msgpack', '~> 0.4'
-  gem 'rake', '~> 0.8'
-  gem 'rspec', '~> 1.3'
+  gem 'jwt'
+  gem 'msgpack'
+  gem 'rake'
+  gem 'rspec'
 end
 
 group :development do
-  gem 'ruby-debug', '~> 0.10',
-      :platforms => :ruby_18
-  gem 'pry', '~> 0.10',
-      :platforms => [:ruby_19, :ruby_20, :ruby_21]
-  gem 'pry-byebug', '~> 2.0',
-      :platforms => [:ruby_19, :ruby_20, :ruby_21]
-  gem 'jeweler', '~> 1.8'
+  gem 'pry'
+  gem 'pry-byebug'
 end

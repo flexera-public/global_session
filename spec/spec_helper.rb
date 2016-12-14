@@ -1,9 +1,10 @@
-require 'rubygems'
-$:.unshift(File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib')))
-require 'bundler/setup'
-require 'spec'
 require 'tempfile'
+
+require 'rubygems'
+require 'bundler/setup'
 require 'flexmock'
+require 'rspec'
+
 require 'global_session'
 
 begin
@@ -12,7 +13,7 @@ rescue LoadError
   # no-op; debugger is purposefully omitted from some environments
 end
 
-Spec::Runner.configure do |config|
+RSpec.configure do |config|
   config.mock_with :flexmock
 end
 

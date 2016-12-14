@@ -2,34 +2,27 @@ require 'spec_helper'
 require File.expand_path('../shared_examples', __FILE__)
 
 describe 'GlobalSession::Session::V3 with EC crypto' do
+  include SpecHelper
+
   subject { GlobalSession::Session::V3 }
 
   let(:key_generation_parameter) { 'prime256v1' }
   let(:signature_method) { :dsa_sign_asn1 }
+  let(:approximate_token_size) { 208 }
   it_should_behave_like 'all subclasses of Session::Abstract'
 
   before(:each) do
+    @key_factory = KeyFactory.new
+    @key_factory.create('authority1', true, parameter:key_generation_parameter)
+    @key_factory.create('authority2', false, parameter:key_generation_parameter)
     mock_config('test/trust', ['authority1'])
     mock_config('test/authority', 'authority1')
+    mock_config('test/timeout', '60')
     mock_config('common/attributes/signed', ['user'])
     mock_config('common/attributes/insecure', ['favorite_color'])
     @directory        = GlobalSession::Directory.new(mock_config, @key_factory.dir)
     @original_session = subject.new(@directory)
     @cookie           = @original_session.to_s
-  end
-
-  context 'cookie size' do
-    it 'has size ~208 bytes' do
-      size  = 0
-      count = 0
-      100.times do
-        session = subject.new(@directory)
-        size += session.to_s.size
-        count += 1
-      end
-
-      (Float(size) / Float(count)).should be_close(208, 5)
-    end
   end
 
   context '#delete' do
@@ -40,7 +33,7 @@ describe 'GlobalSession::Session::V3 with EC crypto' do
 
       it 'removes the key from the session' do
         @original_session.delete('favorite_color')
-        @original_session['favorite_color'].should be_nil
+        expect(@original_session['favorite_color']).to eq(nil)
       end
     end
 
@@ -51,7 +44,7 @@ describe 'GlobalSession::Session::V3 with EC crypto' do
 
       it 'removes the key from the session' do
         @original_session.delete('user')
-        @original_session['user'].should be_nil
+        expect(@original_session['user']).to eq(nil)
       end
     end
 
@@ -72,7 +65,7 @@ describe 'GlobalSession::Session::V3 with EC crypto' do
     it 'is not destructive to the original session' do
       new_session = @original_session.clone
       new_session.delete('user')
-      @original_session['user'].should == 'bar'
+      expect(@original_session['user']).to eq('bar')
     end
   end
 
@@ -102,7 +95,7 @@ describe 'GlobalSession::Session::V3 with EC crypto' do
       payload = {'sub' => 'joe schmoe'}
       token = JWT.encode payload, priv, 'ES256'
       jwt, jws = JWT.decode token, pub, true, algorithm: 'ES256'
-      jwt.should == payload
+      expect(jwt).to eq(payload)
     end
   end
 end

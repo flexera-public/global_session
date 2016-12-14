@@ -5,13 +5,13 @@ require 'spec_helper'
 shared_examples_for 'all subclasses of Session::Abstract' do
   include SpecHelper
 
-  before(:all) do
+  before do
     @key_factory = KeyFactory.new
     @key_factory.create('authority1', true, parameter:key_generation_parameter)
     @key_factory.create('authority2', false, parameter:key_generation_parameter)
   end
 
-  after(:all) do
+  after do
     @key_factory.destroy
   end
 
@@ -22,7 +22,6 @@ shared_examples_for 'all subclasses of Session::Abstract' do
   end
 
   after(:each) do
-    @key_factory.reset
     reset_mock_config
   end
 
@@ -37,7 +36,7 @@ shared_examples_for 'all subclasses of Session::Abstract' do
 
     context 'when everything is copacetic' do
       it 'succeeds' do
-        subject.new(@directory, @cookie).should be_a(GlobalSession::Session::Abstract)
+        expect(subject.new(@directory, @cookie)).to be_kind_of(GlobalSession::Session::Abstract)
       end
     end
 
@@ -46,7 +45,7 @@ shared_examples_for 'all subclasses of Session::Abstract' do
         @cookie = tamper_with_insecure_attributes(subject, @cookie, {'favorite_color' => 'blue'})
       end
       it 'succeeds' do
-        subject.new(@directory, @cookie).should be_a(GlobalSession::Session::Abstract)
+        expect(subject.new(@directory, @cookie)).to be_a(GlobalSession::Session::Abstract)
       end
     end
 
@@ -55,9 +54,9 @@ shared_examples_for 'all subclasses of Session::Abstract' do
         @cookie = tamper_with_signed_attributes(subject, @cookie, {'evil_haxor' => 'mwahaha'})
       end
       it 'raises SecurityError' do
-        lambda {
+        expect {
           subject.new(@directory, @cookie)
-        }.should raise_error(SecurityError)
+        }.to raise_error(SecurityError)
       end
     end
 
@@ -71,9 +70,9 @@ shared_examples_for 'all subclasses of Session::Abstract' do
         mock_config('test/authority', nil)
       end
       it 'raises SecurityError' do
-        lambda {
+        expect {
           subject.new(@directory, @cookie)
-        }.should raise_error(SecurityError)
+        }.to raise_error(SecurityError)
       end
     end
 
@@ -83,15 +82,15 @@ shared_examples_for 'all subclasses of Session::Abstract' do
         flexmock(Time).should_receive(:now).and_return(fake_now)
       end
       it 'raises ExpiredSession' do
-        lambda {
+        expect {
           subject.new(@directory, @cookie)
-        }.should raise_error(GlobalSession::ExpiredSession)
+        }.to raise_error(GlobalSession::ExpiredSession)
       end
     end
 
     context 'when an empty cookie is supplied' do
       it 'creates a new valid session' do
-        subject.new(@directory, '').valid?.should be_true
+        expect(subject.new(@directory, '').valid?).to eq(true)
       end
 
       context 'and there is no local authority' do
@@ -101,7 +100,7 @@ shared_examples_for 'all subclasses of Session::Abstract' do
         end
 
         it 'creates a new invalid session' do
-          subject.new(@directory, '').valid?.should be_false
+          expect(subject.new(@directory, '').valid?).to eq(false)
         end
       end
     end
@@ -111,9 +110,9 @@ shared_examples_for 'all subclasses of Session::Abstract' do
 
       bad_cookies.each do |cookie|
         it 'copes' do
-          lambda {
+          expect {
             subject.new(@directory, cookie)
-          }.should raise_error(GlobalSession::MalformedCookie)
+          }.to raise_error(GlobalSession::MalformedCookie)
         end
       end
     end
@@ -133,7 +132,7 @@ shared_examples_for 'all subclasses of Session::Abstract' do
         future_time = Time.at(Time.now.to_i + 5)
         flexmock(Time).should_receive(:now).and_return future_time
         @session.renew!
-        @session.created_at.should_not == old
+        expect(@session.created_at).not_to eq(old)
       end
 
       it 'updates expired_at' do
@@ -141,18 +140,18 @@ shared_examples_for 'all subclasses of Session::Abstract' do
         future_time = Time.at(Time.now.to_i + 5)
         flexmock(Time).should_receive(:now).and_return future_time
         @session.renew!
-        @session.expired_at.should_not == old
+        expect(@session.expired_at).not_to eq(old)
       end
     end
 
     context :new_record? do
       it 'returns true when the session was just created' do
-        @session.new_record?.should be_true
+        expect(@session.new_record?).to eq(true)
       end
 
       it 'returns false when the session was loaded from a cookie' do
         loaded_session = subject.new(@directory, @session.to_s)
-        loaded_session.new_record?.should be_false
+        expect(loaded_session.new_record?).to eq(false)
       end
     end
 
@@ -166,19 +165,23 @@ shared_examples_for 'all subclasses of Session::Abstract' do
 
       context :dirty? do
         it 'returns true when secure attributes change' do
-          @session.dirty?.should be_false
+          expect(@session.dirty?).to eq(false)
           @session['user'] = rand(2**32-1)
-          @session.dirty?.should be_true
+          expect(@session.dirty?).to eq(true)
         end
 
         it 'returns true when insecure attributes change' do
-          @session.dirty?.should be_false
+          expect(@session.dirty?).to eq(false)
           @session['favorite_color'] = 'thistle'
-          @session.dirty?.should be_true
+          expect(@session.dirty?).to eq(true)
         end
       end
 
       context :to_s do
+        it 'produces a reasonably sized token' do
+          expect(@session.to_s.size).to be_within(approximate_token_size * 0.10).of(approximate_token_size)
+        end
+
         it 'reuses signature when nothing has changed' do
           flexmock(@directory.private_key).should_receive(signature_method).never
           @session.to_s
