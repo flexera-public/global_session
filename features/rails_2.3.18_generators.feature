@@ -1,9 +1,9 @@
-Feature: Rails 2.3.8 generators
+Feature: Rails 2.3.18 generators
   In order to ensure full compatibility with different Rails versions
-  Developers can use global_session with Rails 2.3.8
+  Developers can use global_session with Rails 2.3.18
 
   Background:
-    Given a Rails 2.3.8 application
+    Given a Rails 2.3.18 application
     And I use development environment
     And I use localhost as a domain
     And a database

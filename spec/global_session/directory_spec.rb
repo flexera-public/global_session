@@ -9,7 +9,7 @@ describe GlobalSession::Directory do
 
   after(:all) do
     @key_factory.destroy
-  end  
+  end
 
   before(:each) do
     mock_config('test/timeout', 60)

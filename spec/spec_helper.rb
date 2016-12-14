@@ -7,12 +7,7 @@ require 'flexmock'
 require 'global_session'
 
 begin
-  if RUBY_VERSION =~ /^1\.8/
-    require 'ruby-debug'
-  else
-    require 'pry'
-    require 'pry-byebug'
-  end
+  require 'pry'
 rescue LoadError
   # no-op; debugger is purposefully omitted from some environments
 end

@@ -99,6 +99,7 @@ DEPENDENCIES
   httpclient
   jeweler (~> 1.8)
   json (~> 1.4)
+  jwt (~> 1.5)
   msgpack (~> 0.4)
   pry (~> 0.10)
   pry-byebug (~> 2.0)

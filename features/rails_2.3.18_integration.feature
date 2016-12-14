@@ -1,9 +1,9 @@
-Feature: Rails 2.3.5 integration
+Feature: Rails 2.3.18 integration
   In order to ensure full compatibility with different Rails versions
-  Developers can use global_session with Rails 2.3.5
+  Developers can use global_session with Rails 2.3.18
 
   Background:
-    Given a Rails 2.3.5 application
+    Given a Rails 2.3.18 application
     And I use development environment
     And I use localhost as a domain
     And the app is configured to use global_session
@@ -57,4 +57,3 @@ Feature: Rails 2.3.5 integration
     When I send a GET request to 'happy/index'
     Then I should receive empty session
     And I should have new global_session generated
-

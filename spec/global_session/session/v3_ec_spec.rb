@@ -89,4 +89,20 @@ describe 'GlobalSession::Session::V3 with EC crypto' do
       end
     end
   end
+
+  context 'JSON Web Token interoperability' do
+    before(:all) do
+      require 'jwt'
+    end
+
+    it 'uses JWT-compatible ECDSA keys' do
+      authority = @directory.keystore.private_key_name
+      priv = @directory.keystore.private_key
+      pub = @directory.keystore.public_keys[authority]
+      payload = {'sub' => 'joe schmoe'}
+      token = JWT.encode payload, priv, 'ES256'
+      jwt, jws = JWT.decode token, pub, true, algorithm: 'ES256'
+      jwt.should == payload
+    end
+  end
 end

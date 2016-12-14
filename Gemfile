@@ -11,6 +11,7 @@ group :test do
   gem 'cucumber', '~> 1.0'
   gem 'flexmock', '~> 0.8'
   gem 'httpclient'
+  gem 'jwt', '~> 1.5'
   gem 'msgpack', '~> 0.4'
   gem 'rake', '~> 0.8'
   gem 'rspec', '~> 1.3'
