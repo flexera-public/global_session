@@ -205,6 +205,18 @@ module GlobalSession
     # valid(true|false):: whether the specified session is valid
     def valid_session?(uuid, expired_at)
       (expired_at > Time.now) && !@invalid_sessions.include?(uuid)
+    rescue => e
+      RAILS_DEFAULT_LOGGER.error "[GlobalSession::Directory#valid_session?] Raised: #{e.class.name}, #{e.message}"
+      RAILS_DEFAULT_LOGGER.debug "[GlobalSession::Directory#valid_session?] expired_at.class.name: #{expired_at.class.name}"
+      RAILS_DEFAULT_LOGGER.debug "[GlobalSession::Directory#valid_session?] expired_at.inspect: #{expired_at.inspect}"
+      RAILS_DEFAULT_LOGGER.debug "[GlobalSession::Directory#valid_session?] expired_at.to_s: #{expired_at.to_s}"
+      RAILS_DEFAULT_LOGGER.debug "[GlobalSession::Directory#valid_session?] expired_at: #{expired_at}"
+      RAILS_DEFAULT_LOGGER.debug "[GlobalSession::Directory#valid_session?] uuid.class.name: #{uuid.class.name}"
+      RAILS_DEFAULT_LOGGER.debug "[GlobalSession::Directory#valid_session?] uuid.inspect: #{uuid.inspect}"
+      RAILS_DEFAULT_LOGGER.debug "[GlobalSession::Directory#valid_session?] uuid.to_s: #{uuid.to_s}"
+      RAILS_DEFAULT_LOGGER.debug "[GlobalSession::Directory#valid_session?] uuid: #{uuid}"
+
+      raise
     end
 
     # Callback used by Session objects to report when the application code calls
