@@ -12,6 +12,9 @@ module GlobalSession::Session
     NOT_BEFORE = 'nbf'.freeze
     KEY_ID     = 'kid'.freeze
 
+    # Pattern that matches possible Flexera Okta issuers
+    ISSUER_REGEXP = /^https:\/\/secure.flexeratest.com|^https:\/\/secure.flexera.com/
+
     # Pattern that matches strings that are probably a V4 session cookie.
     HEADER = /^eyJ/
 
@@ -98,8 +101,8 @@ module GlobalSession::Session
         raise GlobalSession::PrematureSession, "Session not valid before #{not_before}" unless Time.now >= not_before
       end
 
-      # if this token was issued by flexera IAM, we will use the "kid" header as the issuer
-      if issuer =~ /^https:\/\/flexeraiam/
+      # if this token was issued by Flexera IAM, we will use the "kid" header as the issuer
+      if header[KEY_ID] && issuer =~ ISSUER_REGEXP
         issuer = header[KEY_ID]
       end
 
