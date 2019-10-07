@@ -70,7 +70,6 @@ describe GlobalSession::Session::V4 do
           'sub' => token_subject
         }
 
-        data = {'iss' => trusted_issuer, 'sub' => 'jwt joe'}
         segments = []
         segments << encoded_header
         segments << JWT.encoded_payload(payload)
@@ -93,11 +92,10 @@ describe GlobalSession::Session::V4 do
         payload = {
           'iat' => now.to_i,
           'exp' => expire_at.to_i,
-          'iss' => "https://flexeraiam.okta.com/oauth/something",
+          'iss' => "https://secure.flexeratest.com/oauth/something",
           'sub' => token_subject
         }
 
-        data = {'iss' => trusted_issuer, 'sub' => 'jwt joe'}
         segments = []
         segments << encoded_header
         segments << JWT.encoded_payload(payload)
