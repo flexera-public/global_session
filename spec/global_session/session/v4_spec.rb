@@ -83,7 +83,7 @@ describe GlobalSession::Session::V4 do
       end
     end
 
-    context 'when the issuer is a flexeraiam endpoint, and the issuer is present in the kid header' do
+    context 'when the issuer is a flexeraiam-us endpoint, and the issuer is present in the kid header' do
       let(:valid_jwt) do
         algorithm = 'RS256'
         header = { 'kid' => trusted_issuer, 'alg' => algorithm }
@@ -93,6 +93,32 @@ describe GlobalSession::Session::V4 do
           'iat' => now.to_i,
           'exp' => expire_at.to_i,
           'iss' => "https://secure.flexeratest.com/oauth/something",
+          'sub' => token_subject
+        }
+
+        segments = []
+        segments << encoded_header
+        segments << JWT.encoded_payload(payload)
+        segments << JWT.encoded_signature(segments.join('.'), directory.private_key, algorithm)
+        segments.join('.')
+      end
+
+      it 'should parse properly' do
+        session = subject.new(directory, valid_jwt)
+        expect(session['sub']).to eq(token_subject)
+      end 
+    end
+    
+    context 'when the issuer is a flexeraiam-eu endpoint, and the issuer is present in the kid header' do
+      let(:valid_jwt) do
+        algorithm = 'RS256'
+        header = { 'kid' => trusted_issuer, 'alg' => algorithm }
+        encoded_header = JWT.base64url_encode(JWT.encode_json(header))
+
+        payload = {
+          'iat' => now.to_i,
+          'exp' => expire_at.to_i,
+          'iss' => "https://secure.flexera.eu/oauth/something",
           'sub' => token_subject
         }
 
