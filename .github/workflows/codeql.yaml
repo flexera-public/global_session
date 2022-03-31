@@ -1,0 +1,53 @@
+name: "CodeQL"
+
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+    types: [ opened, synchronize, reopened ]
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    steps:
+      # SSH Agent Setup required for git to pull modules from private repos
+      - name: SSH Agent Setup
+        uses: webfactory/ssh-agent@v0.4.1
+        with:
+          ssh-private-key: ${{ secrets.GLOBAL_FLEXERA_CI_PRIVATE_SSH_KEY }}
+
+      # Force SSH authentication for repositories with HTTPS references
+      - name: Git Config
+        run: |
+          # 'go get' and 'terraform init' requires valid authentication and git config for private repos
+          git config --global --add url.ssh://git@github.com/flexera/.insteadof https://github.com/flexera/
+          git config --global --add url.ssh://git@github.com/rightscale/.insteadof https://github.com/rightscale/
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ssh-key: ${{ secrets.GLOBAL_FLEXERA_CI_PRIVATE_SSH_KEY }}
+          submodules: recursive
+          path: go/src/github.com/${{ github.repository }}
+
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v1
+
+      - name: Set up Ruby 2.1.9
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.1.9
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v1
