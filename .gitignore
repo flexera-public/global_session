@@ -3,3 +3,5 @@ pkg/*
 .bundle/*
 measurement/*
 
+# Editor files
+*.sw*

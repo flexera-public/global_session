@@ -20,6 +20,12 @@ jobs:
       contents: read
 
     steps:
+      # SSH Agent Setup required for git to pull modules from private repos
+      - name: SSH Agent Setup
+        uses: webfactory/ssh-agent@v0.4.1
+        with:
+          ssh-private-key: ${{ secrets.GLOBAL_FLEXERA_CI_PRIVATE_SSH_KEY }}
+
       # Force SSH authentication for repositories with HTTPS references
       - name: Git Config
         run: |
@@ -30,6 +36,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
+          ssh-key: ${{ secrets.GLOBAL_FLEXERA_CI_PRIVATE_SSH_KEY }}
           submodules: recursive
           path: go/src/github.com/${{ github.repository }}
 
@@ -37,10 +44,10 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v1
 
-      - name: Set up Ruby 2.1.9
+      - name: Set up Ruby 2.1
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 2.1.9
+          ruby-version: 2.1.6
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1

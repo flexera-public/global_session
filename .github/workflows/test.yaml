@@ -1,0 +1,62 @@
+name: "Run Tests"
+on:
+  push:
+    branches:
+      - master
+      - "*_cow"
+    tags:
+      - release-*
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+env:
+  # HOME required by Setup Git
+  HOME: ${{ github.workspace }}
+
+# Cancel previous runs for same github.ref (refs/heads/NITRO-2264_improve_workflows_cow)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: "Test"
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        ruby-version: ['2.1', '2.2', '2.3']
+
+    steps:
+      # SSH Agent Setup required for git to pull modules from private repos
+      - name: SSH Agent Setup
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.GLOBAL_FLEXERA_CI_PRIVATE_SSH_KEY }}
+
+      # Checkout global_resource_service code from github
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ssh-key: ${{ secrets.GLOBAL_FLEXERA_CI_PRIVATE_SSH_KEY }}
+          submodules: recursive
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
+
+      - name: Setup prereqs
+        run: |
+          # Dictionary needed for factory_girl gem, which is used during testing.
+          # It is also needed for the praxis doc build.
+          # For some reason, it's not already installed on ubuntu-latest.
+          sudo apt-get -qq update
+          sudo apt-get install --yes libgmp3-dev
+
+      - name: Run Tests
+        run: |
+          gem install bundler -v 1.16.6
+          bundle exec rake spec
