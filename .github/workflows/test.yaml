@@ -28,18 +28,10 @@ jobs:
         ruby-version: ['2.1', '2.2', '2.3']
 
     steps:
-      # SSH Agent Setup required for git to pull modules from private repos
-      - name: SSH Agent Setup
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.GLOBAL_FLEXERA_CI_PRIVATE_SSH_KEY }}
-
-      # Checkout global_resource_service code from github
       - name: Checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          ssh-key: ${{ secrets.GLOBAL_FLEXERA_CI_PRIVATE_SSH_KEY }}
           submodules: recursive
 
       - name: Setup Ruby
