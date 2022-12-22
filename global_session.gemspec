@@ -19,7 +19,14 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = Gem::Requirement.new('~> 2.1')
 
-  spec.add_runtime_dependency('json', ['~> 1.4'])
+  # Bump json to ~> 2.3.0 to address [GitHub CVE-2020-10663](https://github.com/advisories/GHSA-jphg-qwrw-7w9g)
+  spec.add_runtime_dependency('json', ['~> 2.3.0'])
+  # Bump rack to ~> 2.1.4.1 to address:
+  # * [GitHub CVE-2020-8161](https://github.com/advisories/GHSA-5f9h-9pjv-v6j7)
+  # * [GitHub CVE-2020-8184](https://github.com/advisories/GHSA-j6w9-fv6q-3q52)
+  # * [GitHub CVE-2022-30122](https://github.com/advisories/GHSA-hxqx-xwvh-44m2)
+  # * [GitHub CVE-2022-30123](https://github.com/advisories/GHSA-wq4h-7r42-5hrr)
+  spec.add_runtime_dependency('rack', ['~> 2.1.4.1'])
   spec.add_runtime_dependency('rack-contrib', ['~> 1.0'])
   spec.add_runtime_dependency('right_support', ['>= 2.14.1', '< 3.0'])
   spec.add_runtime_dependency('simple_uuid', ['>= 0.2.0'])
