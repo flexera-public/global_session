@@ -69,7 +69,13 @@ module GlobalSession
     # @return [OpenSSL::PKey::PKey] a public/private keypair
     def self.create_keypair(cryptosystem=:RSA, parameter=nil)
       factory = OpenSSL::PKey.const_get(cryptosystem)
-      if factory.respond_to?(:generate)
+      # For earlier versions of Ruby, OpenSSL::PKey::EC did not have a
+      # generate() method. For Ruby 2.5.8, which is what we upgraded to
+      # for other GRS vulnerabilities, OpenSSL::PKey::EC now has a generate()
+      # method, but it's different than the generate() method for other
+      # cryptosystems. Therefore, exclude OpenSSL::PKey::EC below so it
+      # continues to fall through the "else".
+      if factory.respond_to?(:generate) && factory != OpenSSL::PKey::EC
         # parameter-free cryptosystem e.g. RSA, DSA. Default key length 1024,
         # which is really too small, but whose signatures are quite large.
         parameter ||= 1024

@@ -35,7 +35,7 @@ class KeyFactory
       new_key = GlobalSession::Keystore.create_keypair(:EC, parameter)
       new_public = OpenSSL::PKey::EC.new(new_key)
       new_public.private_key = nil
-      new_public  = new_public.to_pem
+      new_public  = new_public.public_to_pem
       new_private = new_key.to_pem
     else
       raise ArgumentError, "Don't know what to do with parameter"
